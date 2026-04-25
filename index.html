@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrammaLab Kids — Обучающая платформа</title>
+    <style>
+        :root { --bg: #ffffff; --light-blue: #e3f2fd; --main-blue: #00a2ff; --dark-blue: #0077b6; --text: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        
+        header { background: var(--main-blue); padding: 15px; text-align: center; color: white; border-bottom: 4px solid var(--dark-blue); }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+
+        /* Видео на главном экране */
+        .main-video { background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 30px; border: 4px solid var(--main-blue); }
+        
+        /* Сетка игр */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+        .card { background: var(--light-blue); border: 2px solid var(--main-blue); border-radius: 15px; padding: 25px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: bold; color: var(--dark-blue); }
+        .card:hover { background: var(--main-blue); color: white; transform: translateY(-5px); }
+        .card span { font-size: 40px; display: block; margin-bottom: 10px; }
+
+        /* Редактор (как Wordwall) */
+        #editor { background: #fdfdfd; border: 2px solid var(--main-blue); border-radius: 20px; padding: 30px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .input-group { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+        input[type="text"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        
+        /* Игровая зона */
+        #game-zone { display: none; text-align: center; }
+        .game-display { background: var(--light-blue); border: 3px solid var(--main-blue); border-radius: 20px; padding: 30px; margin: 20px 0; min-height: 200px; }
+        .game-img { max-width: 100%; height: 200px; object-fit: contain; border-radius: 10px; margin-bottom: 15px; background: white; }
+        
+        .btn-main { background: var(--main-blue); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; }
+        .wheel { width: 260px; height: 260px; border: 8px solid var(--main-blue); border-radius: 50%; margin: 20px auto; background: conic-gradient(var(--main-blue) 0% 25%, #fff 25% 50%, var(--main-blue) 50% 75%, #fff 75% 100%); transition: transform 3s cubic-bezier(0.1, 0, 0, 1); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="margin: 0;">💎 GrammaLab Kids</h1>
+</header>
+
+<div class="container">
+    <div id="main-screen">
+        <div class="main-video">
+            <iframe width="100%" height="450" src="https://www.youtube.com/embed/S_8q0sO1RMo" frameborder="0" allowfullscreen></iframe>
+        </div>
+        
+        <h2 style="color: var(--dark-blue); text-align: center;">Выбери игру для практики:</h2>
+        
+        <div class="grid">
+            <div class="card" onclick="openEd('Викторина', '📝', false)"><span>📝</span>Викторина</div>
+            <div class="card" onclick="openEd('Колесо фортуны', '🎡', false)"><span>🎡</span>Колесо</div>
+            <div class="card" onclick="openEd('Сопоставить пары', '🔗', true)"><span>🔗</span>Сопоставить</div>
+            <div class="card" onclick="openEd('Закончи предложение', '✍️', true)"><span>✍️</span>Закончи</div>
+            <div class="card" onclick="openEd('Анаграмма', '🔠', true)"><span>🔠</span>Анаграмма</div>
+            <div class="card" onclick="openEd('Карточки', '🃏', true)"><span>🃏</span>Карточки</div>
+        </div>
+    </div>
+
+    <div id="editor">
+        <h2 id="ed-title" style="text-align: center; color: var(--dark-blue);">Настройка</h2>
+        <div class="input-group">
+            <div id="img-field" style="display:none;">
+                <label><b>Ссылка на картинку:</b></label>
+                <input type="text" id="img-url" placeholder="Вставь ссылку на картинку...">
+            </div>
+            <label><b>Твой вопрос или фраза:</b></label>
+            <input type="text" id="q-val" placeholder="Введите текст...">
+            
+            <div id="ans-block">
+                <label><b>Варианты (для Викторины/Колеса):</b></label>
+                <input type="text" id="a1" placeholder="Верный ответ">
+                <input type="text" id="a2" placeholder="Неверный вариант">
+            </div>
+        </div>
+        <button class="btn-main" onclick="play()">ЗАПУСТИТЬ ИГРУ</button>
+        <button class="btn-main" style="background:#ccc; margin-top:10px;" onclick="location.reload()">НАЗАД</button>
+    </div>
+
+    <div id="game-zone">
+        <h2 id="g-name"></h2>
+        <div class="game-display" id="g-display"></div>
+        <button class="btn-main" style="background:#ccc" onclick="location.reload()">ВЕРНУТЬСЯ К ВИДЕО</button>
+    </div>
+</div>
+
+<script>
+    let currentMode = "";
+    let useImg = false;
+
+    function openEd(mode, icon, imgNeeded) {
+        currentMode = mode;
+        useImg = imgNeeded;
+        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('editor').style.display = 'block';
+        document.getElementById('ed-title').innerText = icon + " " + mode;
+        
+        // Показываем/скрываем поле картинки
+        document.getElementById('img-field').style.display = imgNeeded ? 'block' : 'none';
+        // Скрываем варианты для простых игр
+        document.getElementById('ans-block').style.display = (mode === 'Викторина' || mode === 'Колесо фортуны') ? 'block' : 'none';
+    }
+
+    function play() {
+        const val = document.getElementById('q-val').value;
+        const img = document.getElementById('img-url').value;
+        if(!val) return alert("Впиши что-нибудь!");
+
+        document.getElementById('editor').style.display = 'none';
+        document.getElementById('game-zone').style.display = 'block';
+        document.getElementById('g-name').innerText = currentMode;
+        
+        const display = document.getElementById('g-display');
+        display.innerHTML = "";
+
+        // Если нужна картинка — добавляем её
+        if(useImg && img) {
+            display.innerHTML += `<img src="${img}" class="game-img">`;
+        }
+
+        if(currentMode === 'Колесо фортуны') {
+            display.innerHTML += `<div class="wheel" id="wh" onclick="spinWheel()"></div><p>Нажми на колесо, чтобы крутить!</p>`;
+        } else if(currentMode === 'Викторина') {
+            display.innerHTML += `<div style="font-size:24px; margin-bottom:20px;">${val}</div>
+                <button class="card" style="width:100%" onclick="alert('Верно!')">${document.getElementById('a1').value}</button>
+                <button class="card" style="width:100%; margin-top:10px" onclick="alert('Подумай еще!')">${document.getElementById('a2').value}</button>`;
+        } else {
+            // Для остальных игр (Анаграмма, Сопоставление и т.д.)
+            display.innerHTML += `<div style="font-size:24px;">Задание: ${val}</div>`;
+        }
+    }
+
+    function spinWheel() {
+        let r = Math.random() * 3600 + 1800;
+        document.getElementById('wh').style.transform = `rotate(${r}deg)`;
+        setTimeout(() => alert("Твой вопрос: " + document.getElementById('q-val').value), 3100);
+    }
+</script>
+</body>
+</html>
