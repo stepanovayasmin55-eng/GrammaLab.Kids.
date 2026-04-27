@@ -3,43 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab Real Wheel Edition</title>
+    <title>GrammaLab Ultra Pro</title>
     <style>
         :root { --main: #00a2ff; --bg: #f4f7f9; --text: #2d3436; --ai: #6c5ce7; --share: #2ecc71; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
-        
-        header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); sticky: top; z-index: 100; }
+        header { background: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .logo { font-weight: 900; color: var(--main); font-size: 22px; }
 
         .screen { display: none; padding: 15px; max-width: 500px; margin: 0 auto; animation: fadeIn 0.3s ease; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* МЕНЮ */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: white; padding: 25px; border-radius: 25px; text-align: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.2s; border: 1px solid #eee; }
+        .card:active { transform: scale(0.95); }
+
         /* РЕДАКТОР */
         .editor-item { background: white; padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #e2e8f0; position: relative; }
         input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f7; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; outline: none; }
         .ans-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        input[type="radio"] { width: 22px; height: 22px; accent-color: var(--main); }
+        input[type="radio"] { width: 24px; height: 24px; accent-color: var(--main); }
 
         /* КНОПКИ */
-        .btn { padding: 16px; border-radius: 18px; border: none; font-weight: 700; cursor: pointer; width: 100%; margin: 5px 0; font-size: 16px; transition: 0.2s; }
+        .btn { padding: 16px; border-radius: 18px; border: none; font-weight: 700; cursor: pointer; width: 100%; margin: 5px 0; font-size: 16px; }
         .btn-main { background: var(--main); color: white; box-shadow: 0 4px 0 #0081cc; }
         .btn-ai { background: var(--ai); color: white; }
-        .btn-add { background: #fff; border: 2px dashed #cbd5e0; color: #718096; margin-top: 10px; }
+        .btn-share { background: var(--share); color: white; }
 
-        /* ИГРОВОЕ ПОЛЕ */
-        #stage { background: white; border-radius: 30px; height: 420px; position: relative; border: 4px solid var(--main); overflow: hidden; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        /* ИГРОВАЯ ЗОНА */
+        #stage { background: white; border-radius: 30px; height: 400px; position: relative; border: 4px solid var(--main); overflow: hidden; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; }
         
-        /* КОЛЕСО */
-        #wheel-container { position: relative; width: 300px; height: 300px; }
-        #wheel-canvas { width: 100%; height: 100%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
-        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4757; z-index: 10; }
-
+        /* АНИМАЦИИ */
+        .obj { position: absolute; cursor: pointer; transition: 0.4s; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .mole { width: 80px; height: 100px; background: #8d6e63; border-radius: 40px 40px 10px 10px; bottom: -110px; color: white; }
+        .mole.up { bottom: 40px; }
+        .cloud { background: white; border: 2px solid var(--main); padding: 10px 15px; border-radius: 20px; animation: fly 4s linear infinite; }
+        @keyframes fly { from { left: 110%; } to { left: -150px; } }
+        #wheel-canvas { width: 300px; height: 300px; transition: 4s cubic-bezier(0.1, 0, 0.1, 1); }
+        
         /* КОНФЕТТИ */
         .confetti { position: fixed; width: 10px; height: 10px; z-index: 1000; animation: fall 3s linear forwards; }
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-
-        .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid var(--main); display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 35px; font-weight: bold; background: white; }
     </style>
 </head>
 <body>
@@ -50,19 +55,25 @@
 </header>
 
 <div id="sc-menu" class="screen active">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('mole')"><span>🔨</span><br><b>Крот</b></div>
-        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('wheel')"><span>🎡</span><br><b>Колесо</b></div>
-        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('plane')"><span>✈️</span><br><b>Погоня</b></div>
-        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('cards')"><span>💡</span><br><b>Карточки</b></div>
+    <div class="grid">
+        <div class="card" onclick="openEditor('mole')">🔨<br><b>Крот</b></div>
+        <div class="card" onclick="openEditor('plane')">✈️<br><b>Погоня</b></div>
+        <div class="card" onclick="openEditor('wheel')">🎡<br><b>Колесо</b></div>
+        <div class="card" onclick="openEditor('cards')">💡<br><b>Карточки</b></div>
+        <div class="card" onclick="openEditor('anagram')">🔠<br><b>Слова</b></div>
+        <div class="card" onclick="openEditor('maze')">👾<br><b>Лабиринт</b></div>
+        <div class="card" onclick="openEditor('slots')">🎰<br><b>Автомат</b></div>
+        <div class="card" onclick="openEditor('pairs')">👥<br><b>Пары</b></div>
     </div>
+    <button class="btn btn-share" style="margin-top:20px" onclick="importGame()">📥 ЗАГРУЗИТЬ КОД ИГРЫ</button>
 </div>
 
 <div id="sc-editor" class="screen">
-    <input type="text" id="ai-topic" placeholder="Тема для ИИ (Космос, Еда...)">
-    <button class="btn btn-ai" onclick="smartAI()">✨ Gemini: Вопрос по теме</button>
+    <input type="text" id="ai-topic" placeholder="Тема для ИИ (напр. Космос)">
+    <button class="btn btn-ai" onclick="smartAI()">✨ Gemini: Создать по теме</button>
     <div id="factory"></div>
-    <button class="btn btn-add" onclick="addQ()">+ Добавить ещё вопрос</button>
+    <button class="btn btn-main" style="background:#f0f0f0; color:#888; border:2px dashed #ccc;" onclick="addQ()">+ Добавить вопрос</button>
+    <button class="btn btn-share" onclick="exportGame()" style="margin-top:10px">📤 ДАТЬ КОД ДРУЗЬЯМ</button>
     <button class="btn btn-main" style="margin-top:20px" onclick="play()">ИГРАТЬ ▶️</button>
 </div>
 
@@ -73,49 +84,71 @@
 
 <div id="sc-final" class="screen" style="text-align:center;">
     <h1>Финиш!</h1>
-    <div class="score-circle" id="final-score">0</div>
-    <p id="final-text"></p>
-    <button class="btn btn-main" onclick="location.reload()">В НАЧАЛО</button>
+    <div style="font-size:60px; color:var(--main); font-weight:900;" id="final-res">0/0</div>
+    <p id="final-msg"></p>
+    <button class="btn btn-main" onclick="location.reload()">В МЕНЮ</button>
 </div>
 
 <script>
-    let mode = '', qs = [], cur = 0, points = 0, isSpinning = false;
+    let mode = '', qs = [], cur = 0, points = 0, spinning = false;
 
-    function openEditor(m) {
+    // --- ФУНКЦИИ ПЕРЕДАЧИ КОДА ---
+    function exportGame() {
+        saveData();
+        if (qs.length === 0) return alert("Сначала создай вопросы!");
+        // Шифруем данные в строку
+        const code = btoa(unescape(encodeURIComponent(JSON.stringify({m:mode, q:qs}))));
+        prompt("Скопируй этот код и отправь другу:", code);
+    }
+
+    function importGame() {
+        const code = prompt("Вставь код игры сюда:");
+        if(!code) return;
+        try {
+            const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+            mode = data.m; qs = data.q;
+            openEditor(mode, true);
+            document.getElementById('factory').innerHTML = "";
+            qs.forEach(it => addQ(it.q, it.opts.map(o=>o.t), it.opts.findIndex(o=>o.ok)));
+            alert("Игра успешно загружена!");
+        } catch(e) { alert("Ошибка! Код неверный."); }
+    }
+
+    // --- РЕДАКТОР ---
+    function openEditor(m, isImport = false) {
         mode = m;
         document.getElementById('sc-menu').classList.remove('active');
         document.getElementById('sc-editor').classList.add('active');
-        addQ();
+        if(!isImport) { document.getElementById('factory').innerHTML = ""; addQ(); }
     }
 
     function addQ(q="", a=["","",""], c=0) {
         const d = document.createElement('div'); d.className = 'editor-item';
         d.innerHTML = `
-            <input type="text" placeholder="Твой вопрос..." value="${q}" class="qi">
+            <input type="text" placeholder="Вопрос..." value="${q}" class="qi">
             ${a.map((t, i) => `
                 <div class="ans-row">
                     <input type="radio" name="r${Math.random()}" ${i===c?'checked':''}>
                     <input type="text" value="${t}" class="ai" placeholder="Вариант ${i+1}">
                 </div>
             `).join('')}
-            <button onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:red; font-size:18px;">✕</button>
+            <button onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; border:none; background:none; color:red;">✕</button>
         `;
         document.getElementById('factory').appendChild(d);
     }
 
     function smartAI() {
         const topic = document.getElementById('ai-topic').value || "Общее";
-        const database = {
-            "Космос": {q: "Первый человек в космосе?", a: ["Гагарин", "Армстронг", "Маск"], c: 0},
-            "Животные": {q: "У кого самая длинная шея?", a: ["Жираф", "Зебра", "Олень"], c: 0},
-            "Математика": {q: "Сколько будет 2 + 2 * 2?", a: ["6", "8", "4"], c: 0}
+        const db = {
+            "Космос": {q: "Какая планета красная?", a: ["Марс", "Венера", "Земля"], c: 0},
+            "Животные": {q: "Кто царь зверей?", a: ["Лев", "Тигр", "Слон"], c: 0}
         };
-        const res = database[topic] || {q: `Напиши вопрос про ${topic}?`, a: ["Ответ 1", "Ответ 2", "Ответ 3"], c: 0};
+        const res = db[topic] || {q: `Напиши вопрос про ${topic}?`, a: ["Верно", "Нет", "Мимо"], c: 0};
         addQ(res.q, res.a, res.c);
     }
 
-    function play() {
-        qs = []; points = 0;
+    function saveData() {
+        qs = [];
         document.querySelectorAll('.editor-item').forEach(box => {
             const q = box.querySelector('.qi').value;
             const opts = [];
@@ -124,25 +157,43 @@
             });
             if(q) qs.push({q, opts});
         });
+    }
+
+    // --- ИГРА ---
+    function play() {
+        saveData();
         document.getElementById('sc-editor').classList.remove('active');
         document.getElementById('sc-game').classList.add('active');
-        cur = 0; render();
+        cur = 0; points = 0; render();
     }
 
     function render() {
         const it = qs[cur]; const st = document.getElementById('stage');
         st.innerHTML = ""; document.getElementById('q-text').innerText = it.q;
 
-        if(mode === 'wheel') {
-            st.innerHTML = `
-                <div id="wheel-container">
-                    <div class="wheel-pointer"></div>
-                    <canvas id="wheel-canvas" width="600" height="600"></canvas>
-                </div>
-                <button class="btn btn-main" style="width:200px" onclick="spinWheel()">КРУТИТЬ!</button>
-            `;
+        if(mode === 'mole') {
+            it.opts.forEach((o, i) => {
+                const m = document.createElement('div'); m.className = 'obj mole';
+                m.style.left = (50 + i * 150) + "px"; m.innerText = o.t;
+                m.onclick = () => { if(o.ok) points++; next(); };
+                st.appendChild(m); setTimeout(() => m.classList.add('up'), 100);
+            });
+        } 
+        else if(mode === 'wheel') {
+            st.innerHTML = `<div style="position:absolute; top:15px; z-index:10; font-size:30px; color:red;">▼</div><canvas id="wheel-canvas" width="600" height="600"></canvas><button class="btn btn-main" style="width:200px; margin-top:20px" onclick="spin()">КРУТИТЬ</button>`;
             drawWheel(it.opts);
-        } else {
+        }
+        else if(mode === 'plane') {
+            st.innerHTML = `<div style="font-size:40px; position:absolute; left:20px;">✈️</div>`;
+            it.opts.forEach((o, i) => {
+                const c = document.createElement('div'); c.className = 'obj cloud';
+                c.innerText = o.t; c.style.top = (50 + i * 100) + "px";
+                c.style.animationDelay = (i * 0.5) + "s";
+                c.onclick = () => { if(o.ok) points++; next(); };
+                st.appendChild(c);
+            });
+        }
+        else {
             it.opts.forEach(o => {
                 const b = document.createElement('button'); b.className = 'btn btn-main'; b.innerText = o.t;
                 b.onclick = () => { if(o.ok) points++; next(); };
@@ -152,75 +203,46 @@
     }
 
     function drawWheel(opts) {
-        const canvas = document.getElementById('wheel-canvas');
-        const ctx = canvas.getContext('2d');
-        const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF'];
+        const ctx = document.getElementById('wheel-canvas').getContext('2d');
         const arc = (Math.PI * 2) / opts.length;
-
-        ctx.clearRect(0, 0, 600, 600);
+        const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF'];
         opts.forEach((o, i) => {
             ctx.fillStyle = colors[i % colors.length];
-            ctx.beginPath();
-            ctx.moveTo(300, 300);
-            ctx.arc(300, 300, 280, arc * i, arc * (i + 1));
-            ctx.fill();
-            
-            ctx.save();
-            ctx.translate(300, 300);
-            ctx.rotate(arc * i + arc / 2);
-            ctx.fillStyle = "#333";
-            ctx.font = "bold 24px Arial";
-            ctx.fillText(o.t.substring(0, 10), 100, 10);
-            ctx.restore();
+            ctx.beginPath(); ctx.moveTo(300, 300); ctx.arc(300, 300, 280, i*arc, (i+1)*arc); ctx.fill();
+            ctx.save(); ctx.translate(300, 300); ctx.rotate(i*arc + arc/2);
+            ctx.fillStyle = "#000"; ctx.font = "bold 24px Arial"; ctx.fillText(o.t, 100, 10); ctx.restore();
         });
     }
 
-    function spinWheel() {
-        if(isSpinning) return;
-        isSpinning = true;
-        const wheel = document.getElementById('wheel-canvas');
-        const randDeg = 1800 + Math.random() * 2000;
-        wheel.style.transform = `rotate(${randDeg}deg)`;
-        
+    function spin() {
+        if(spinning) return; spinning = true;
+        const deg = 1800 + Math.random() * 2000;
+        const canvas = document.getElementById('wheel-canvas');
+        canvas.style.transform = `rotate(${deg}deg)`;
         setTimeout(() => {
             const it = qs[cur];
             const arc = 360 / it.opts.length;
-            const actualDeg = (randDeg % 360);
-            const prizeIdx = Math.floor((360 - actualDeg) / arc) % it.opts.length;
-            
-            if(it.opts[prizeIdx].ok) points++;
-            isSpinning = false;
-            next();
-        }, 4000);
+            const win = Math.floor((360 - (deg % 360)) / arc) % it.opts.length;
+            if(it.opts[win].ok) points++;
+            spinning = false; next();
+        }, 4100);
     }
 
     function next() {
-        cur++;
-        if(cur < qs.length) setTimeout(render, 500);
-        else finish();
+        cur++; if(cur < qs.length) setTimeout(render, 600); else finish();
     }
 
     function finish() {
         document.getElementById('sc-game').classList.remove('active');
         document.getElementById('sc-final').classList.add('active');
-        document.getElementById('final-score').innerText = `${points}/${qs.length}`;
+        document.getElementById('final-res').innerText = `${points}/${qs.length}`;
         if(points > 0) {
-            document.getElementById('final-text').innerText = "Ты супер! 🎊";
-            createConfetti();
-        } else {
-            document.getElementById('final-text').innerText = "Не сдавайся! 💪";
-        }
-    }
-
-    function createConfetti() {
-        for(let i=0; i<100; i++) {
-            const c = document.createElement('div');
-            c.className = 'confetti';
-            c.style.left = Math.random() * 100 + 'vw';
-            c.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            c.style.animationDelay = Math.random() * 2 + 's';
-            document.body.appendChild(c);
-            setTimeout(() => c.remove(), 3000);
+            document.getElementById('final-msg').innerText = "Супер результат! 🎊";
+            for(let i=0; i<100; i++) {
+                const c = document.createElement('div'); c.className = 'confetti';
+                c.style.left = Math.random()*100+'vw'; c.style.background = `hsl(${Math.random()*360},100%,50%)`;
+                document.body.appendChild(c); setTimeout(() => c.remove(), 3000);
+            }
         }
     }
 </script>
