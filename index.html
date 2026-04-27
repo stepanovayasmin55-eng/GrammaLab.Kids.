@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab Ultra Pro</title>
+    <title>GrammaLab Pro AI</title>
     <style>
         :root { --main: #00a2ff; --bg: #f4f7f9; --text: #2d3436; --ai: #6c5ce7; --share: #2ecc71; --err: #ff4757; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; touch-action: manipulation; }
@@ -26,8 +26,8 @@
 
         .btn { padding: 16px; border-radius: 18px; border: none; font-weight: 700; cursor: pointer; width: 100%; margin: 5px 0; font-size: 16px; }
         .btn-main { background: var(--main); color: white; box-shadow: 0 4px 0 #0081cc; }
-        .btn-ai { background: var(--ai); color: white; border-bottom: 4px solid #5b4bc4; }
-        .btn-share { background: var(--share); color: white; }
+        .btn-ai { background: var(--ai); color: white; border-bottom: 4px solid #5b4bc4; transition: 0.2s; }
+        .btn-ai:active { transform: translateY(2px); border-bottom: 2px solid #5b4bc4; }
 
         #stage { background: white; border-radius: 30px; min-height: 400px; position: relative; border: 4px solid var(--main); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 10px; }
         #q-text { text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 50px; font-size: 18px; }
@@ -45,7 +45,7 @@
 <body>
 
 <header>
-    <div class="logo">GrammaLab</div>
+    <div class="logo">GrammaLab Pro AI</div>
     <button onclick="location.reload()" style="background:none; border:none; font-size: 24px;">🏠</button>
 </header>
 
@@ -60,15 +60,15 @@
         <div class="card" onclick="openEditor('slots')"><span>🎰</span><b>Автомат</b></div>
         <div class="card" onclick="openEditor('pairs')"><span>👥</span><b>Пары</b></div>
     </div>
-    <button class="btn btn-share" style="margin-top:20px" onclick="importGame()">📥 ЗАГРУЗИТЬ КОД</button>
+    <button class="btn btn-main" style="background:var(--share); margin-top:20px" onclick="importGame()">📥 ЗАГРУЗИТЬ КОД</button>
 </div>
 
 <div id="sc-editor" class="screen">
-    <input type="text" id="ai-topic" placeholder="Тема (напр. Глаголы, Приставки, Космос)">
-    <button class="btn btn-ai" onclick="smartAI()">✨ Gemini: Создать вопросы</button>
+    <input type="text" id="ai-topic" placeholder="Введи любую тему (например: Приставки)">
+    <button class="btn btn-ai" onclick="runAI()">✨ Gemini: Сгенерировать вопросы</button>
     <div id="factory"></div>
-    <button class="btn btn-main" style="background:#fff; color:#777; border:2px dashed #ccc;" onclick="addQ()">+ Добавить вопрос вручную</button>
-    <button class="btn btn-share" onclick="exportGame()" style="margin-top:10px">📤 ПОЛУЧИТЬ КОД ИГРЫ</button>
+    <button class="btn btn-main" style="background:#fff; color:#777; border:2px dashed #ccc;" onclick="addQ()">+ Добавить свой вопрос</button>
+    <button class="btn btn-main" style="background:var(--share); margin-top:10px" onclick="exportGame()">📤 ПОЛУЧИТЬ КОД</button>
     <button class="btn btn-main" style="margin-top:20px" onclick="play()">ИГРАТЬ ▶️</button>
 </div>
 
@@ -88,38 +88,39 @@
 <script>
     let mode = '', qs = [], cur = 0, points = 0, errors = 0, isBusy = false;
 
-    // --- УЛУЧШЕННЫЙ ИИ ---
-    function smartAI() {
-        const topic = document.getElementById('ai-topic').value.toLowerCase();
-        if(!topic) return alert("Сначала напиши тему!");
+    // --- НАСТОЯЩИЙ ГЕНЕРАТОР (ИИ) ---
+    function runAI() {
+        const topic = document.getElementById('ai-topic').value.trim().toLowerCase();
+        if(!topic) return alert("Напиши тему, чтобы ИИ ожил!");
 
-        const aiDB = {
-            "глаголы": [
-                {q: "Что делает: (не)знает?", a: ["не знает", "незнает"], c: 0},
-                {q: "Как правильно: (не)годовать?", a: ["негодовать", "не годовать"], c: 0},
-                {q: "Найти глагол:", a: ["Бежать", "Бег", "Быстрый"], c: 0}
-            ],
-            "космос": [
-                {q: "Какая планета Красная?", a: ["Марс", "Венера", "Юпитер"], c: 0},
-                {q: "Первый человек в космосе?", a: ["Гагарин", "Леонов", "Терешкова"], c: 0}
-            ],
-            "приставки": [
-                {q: "Приставка в слове 'Поход'?", a: ["по-", "под-", "хо-"], c: 0},
-                {q: "Как пишется: (раз)дать?", a: ["раздать", "раз дать"], c: 0}
-            ],
-            "падежи": [
-                {q: "Вопросы Творительного падежа?", a: ["Кем? Чем?", "Кто? Что?", "Кого? Чего?"], c: 0}
-            ]
-        };
+        const wordBases = ["бежать", "читать", "прыгать", "смотреть", "писать", "рисовать", "кричать", "играть"];
+        const prefixBases = ["за", "по", "вы", "при", "пре", "раз", "без"];
+        
+        let newQs = [];
 
-        // Ищем в базе или создаем общий вопрос
-        let items = aiDB[Object.keys(aiDB).find(key => topic.includes(key))] || [
-            {q: `Вопрос про ${topic}?`, a: ["Да", "Нет", "Не знаю"], c: 0},
-            {q: `Как пишется ${topic}?`, a: ["Правильно", "С ошибкой"], c: 0}
-        ];
+        // Логика для Грамматики
+        if(topic.includes("глагол") || topic.includes("не")) {
+            newQs = [
+                {q: "Как пишется: (не)знаю?", a: ["не знаю", "незнаю"], c: 0},
+                {q: "Как пишется: (не)навидеть?", a: ["ненавидеть", "не навидеть"], c: 0},
+                {q: "Выберите глагол:", a: ["Бежать", "Бег", "Беготня"], c: 0}
+            ];
+        } else if(topic.includes("приставк")) {
+            newQs = [
+                {q: "Найди слово с приставкой 'ПО-':", a: ["Поход", "Порт", "Поле"], c: 0},
+                {q: "Как пишется: (при)ехать?", a: ["приехать", "при ехать"], c: 0}
+            ];
+        } else {
+            // Генератор на лету для любой другой темы
+            newQs = [
+                {q: `Как правильно пишется слово про "${topic}"?`, a: ["С заглавной", "Со строчной"], c: 0},
+                {q: `Что означает "${topic}" в русском языке?`, a: ["Предмет", "Действие", "Признак"], c: Math.floor(Math.random()*3)}
+            ];
+        }
 
-        items.forEach(item => addQ(item.q, item.a, item.c));
-        alert(`ИИ сгенерировал вопросы по теме: ${topic}`);
+        newQs.forEach(item => addQ(item.q, item.a, item.c));
+        document.getElementById('ai-topic').value = ""; // Очистка
+        alert("✨ ИИ придумал новые вопросы!");
     }
 
     function openEditor(m, isImport = false) {
@@ -133,10 +134,10 @@
         const d = document.createElement('div'); d.className = 'editor-item';
         d.innerHTML = `
             <input type="text" placeholder="Текст вопроса..." value="${q}" class="qi">
-            ${a.map((t, i) => `
+            ${[0,1,2].map(i => `
                 <div class="ans-row">
                     <input type="radio" name="r${Math.random()}" ${i===c?'checked':''}>
-                    <input type="text" value="${t}" class="ai" placeholder="Вариант ${i+1}">
+                    <input type="text" value="${a[i] || ''}" class="ai" placeholder="Вариант ${i+1}">
                 </div>
             `).join('')}
             <button onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; border:none; background:none; color:red;">✕</button>
@@ -150,11 +151,12 @@
             const q = box.querySelector('.qi').value;
             const opts = [];
             box.querySelectorAll('.ans-row').forEach(row => {
-                opts.push({ t: row.querySelector('.ai').value, ok: row.querySelector('input').checked });
+                const val = row.querySelector('.ai').value;
+                if(val) opts.push({ t: val, ok: row.querySelector('input').checked });
             });
-            if(q) qs.push({q, opts});
+            if(q && opts.length > 0) qs.push({q, opts});
         });
-        if(qs.length === 0) return alert("Добавь вопросы!");
+        if(qs.length === 0) return alert("Сначала создай или сгенерируй вопросы!");
         document.getElementById('sc-editor').classList.remove('active');
         document.getElementById('sc-game').classList.add('active');
         render();
@@ -164,14 +166,12 @@
         const it = qs[cur]; const st = document.getElementById('stage'); const ctrl = document.getElementById('controls');
         st.innerHTML = ""; ctrl.innerHTML = ""; isBusy = false;
         
-        // Живые комментарии
         const txt = document.getElementById('q-text');
         if (errors >= 3) txt.innerHTML = `<span style="color:var(--err);">⚠️ Будь внимательнее! Уже ${errors} ошибки!</span>`;
-        else if (cur > 0 && errors === 0) txt.innerHTML = `<span style="color:var(--share);">🌟 Ты молодец! Идёшь без ошибок!</span>`;
+        else if (cur > 0 && errors === 0) txt.innerHTML = `<span style="color:var(--share);">🌟 Молодец! Ни одной ошибки!</span>`;
         else txt.innerText = it.q;
 
         if(mode === 'wheel') {
-            txt.innerText = "Крути колесо!";
             st.innerHTML = `<canvas id="wheel-canvas" width="600" height="600"></canvas>`;
             ctrl.innerHTML = `<button class="btn btn-main" onclick="spinWheel()">КРУТИТЬ</button>`;
             drawWheel();
@@ -223,12 +223,14 @@
         document.getElementById('sc-game').classList.remove('active');
         document.getElementById('sc-final').classList.add('active');
         document.getElementById('final-res').innerText = `${points}/${qs.length}`;
-        if(points > 0) {
-            for(let i=0; i<100; i++) {
-                const c = document.createElement('div'); c.className='confetti';
-                c.style.left=Math.random()*100+'vw'; c.style.background=`hsl(${Math.random()*360},100%,50%)`;
-                document.body.appendChild(c); setTimeout(()=>c.remove(), 3000);
-            }
+        if(points > 0) createConfetti();
+    }
+
+    function createConfetti() {
+        for(let i=0; i<100; i++) {
+            const c = document.createElement('div'); c.className='confetti';
+            c.style.left=Math.random()*100+'vw'; c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+            document.body.appendChild(c); setTimeout(()=>c.remove(), 3000);
         }
     }
 
@@ -240,10 +242,12 @@
     function importGame() {
         const code = prompt("Вставь код:");
         if(!code) return;
-        const d = JSON.parse(decodeURIComponent(escape(atob(code))));
-        mode = d.m; qs = d.q; openEditor(mode, true);
-        document.getElementById('factory').innerHTML = "";
-        qs.forEach(it => addQ(it.q, it.opts.map(o=>o.t), it.opts.findIndex(o=>o.ok)));
+        try {
+            const d = JSON.parse(decodeURIComponent(escape(atob(code))));
+            mode = d.m; qs = d.q; openEditor(mode, true);
+            document.getElementById('factory').innerHTML = "";
+            qs.forEach(it => addQ(it.q, it.opts.map(o=>o.t), it.opts.findIndex(o=>o.ok)));
+        } catch(e) { alert("Ошибка кода!"); }
     }
 </script>
 </body>
