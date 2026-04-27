@@ -14,47 +14,30 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* МЕНЮ */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .card { background: white; padding: 20px; border-radius: 20px; text-align: center; cursor: pointer; border: 1px solid #eee; transition: 0.2s; }
         .card:active { transform: scale(0.95); }
         .card span { font-size: 40px; display: block; margin-bottom: 5px; }
 
-        /* РЕДАКТОР */
         .editor-item { background: white; padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #e2e8f0; position: relative; }
         input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f7; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; outline: none; }
         .ans-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
         input[type="radio"] { width: 28px; height: 28px; accent-color: var(--main); flex-shrink: 0; }
 
-        /* КНОПКИ */
         .btn { padding: 16px; border-radius: 18px; border: none; font-weight: 700; cursor: pointer; width: 100%; margin: 5px 0; font-size: 16px; }
         .btn-main { background: var(--main); color: white; box-shadow: 0 4px 0 #0081cc; }
-        .btn-ai { background: var(--ai); color: white; }
+        .btn-ai { background: var(--ai); color: white; border-bottom: 4px solid #5b4bc4; }
         .btn-share { background: var(--share); color: white; }
 
-        /* ИГРА */
         #stage { background: white; border-radius: 30px; min-height: 400px; position: relative; border: 4px solid var(--main); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 10px; }
-        #q-text { text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 50px; font-size: 18px; transition: 0.3s; }
+        #q-text { text-align: center; font-weight: bold; margin-bottom: 10px; min-height: 50px; font-size: 18px; }
 
-        /* АНИМАЦИИ ГЕРОЕВ */
         .obj { position: absolute; cursor: pointer; transition: 0.4s; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: bold; }
         .mole { width: 80px; height: 100px; background: #8d6e63; border-radius: 40px 40px 10px 10px; bottom: -110px; color: white; padding: 5px; }
         .mole.up { bottom: 40px; }
         
-        /* КОЛЕСО */
         #wheel-canvas { width: 300px; height: 300px; transition: 4s cubic-bezier(0.1, 0, 0.1, 1); border-radius: 50%; }
         
-        /* АВТОМАТ */
-        .slot-machine { display: flex; gap: 10px; height: 100px; overflow: hidden; border: 4px solid #333; border-radius: 15px; background: #eee; padding: 10px; margin-bottom: 20px; }
-        .reel { display: flex; flex-direction: column; transition: 3s cubic-bezier(0.2, 0, 0.2, 1); }
-        .slot-item { height: 80px; display: flex; align-items: center; justify-content: center; font-weight: bold; min-width: 80px; }
-
-        /* ЛАБИРИНТ */
-        .maze { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; }
-        .cell { padding: 20px; background: #f0f0f0; border-radius: 15px; text-align: center; cursor: pointer; border: 3px solid transparent; }
-        .cell.active { border-color: var(--main); background: #e3f2fd; }
-
-        /* КОНФЕТТИ */
         .confetti { position: fixed; width: 10px; height: 10px; z-index: 1000; animation: fall 3s linear forwards; }
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
     </style>
@@ -81,11 +64,11 @@
 </div>
 
 <div id="sc-editor" class="screen">
-    <input type="text" id="ai-topic" placeholder="Тема (напр. Не с глаголами)">
-    <button class="btn btn-ai" onclick="smartAI()">✨ ИИ: Создать по теме</button>
+    <input type="text" id="ai-topic" placeholder="Тема (напр. Глаголы, Приставки, Космос)">
+    <button class="btn btn-ai" onclick="smartAI()">✨ Gemini: Создать вопросы</button>
     <div id="factory"></div>
-    <button class="btn btn-main" style="background:#fff; color:#777; border:2px dashed #ccc;" onclick="addQ()">+ Добавить вопрос</button>
-    <button class="btn btn-share" onclick="exportGame()" style="margin-top:10px">📤 ДАТЬ КОД ДРУЗЬЯМ</button>
+    <button class="btn btn-main" style="background:#fff; color:#777; border:2px dashed #ccc;" onclick="addQ()">+ Добавить вопрос вручную</button>
+    <button class="btn btn-share" onclick="exportGame()" style="margin-top:10px">📤 ПОЛУЧИТЬ КОД ИГРЫ</button>
     <button class="btn btn-main" style="margin-top:20px" onclick="play()">ИГРАТЬ ▶️</button>
 </div>
 
@@ -105,6 +88,40 @@
 <script>
     let mode = '', qs = [], cur = 0, points = 0, errors = 0, isBusy = false;
 
+    // --- УЛУЧШЕННЫЙ ИИ ---
+    function smartAI() {
+        const topic = document.getElementById('ai-topic').value.toLowerCase();
+        if(!topic) return alert("Сначала напиши тему!");
+
+        const aiDB = {
+            "глаголы": [
+                {q: "Что делает: (не)знает?", a: ["не знает", "незнает"], c: 0},
+                {q: "Как правильно: (не)годовать?", a: ["негодовать", "не годовать"], c: 0},
+                {q: "Найти глагол:", a: ["Бежать", "Бег", "Быстрый"], c: 0}
+            ],
+            "космос": [
+                {q: "Какая планета Красная?", a: ["Марс", "Венера", "Юпитер"], c: 0},
+                {q: "Первый человек в космосе?", a: ["Гагарин", "Леонов", "Терешкова"], c: 0}
+            ],
+            "приставки": [
+                {q: "Приставка в слове 'Поход'?", a: ["по-", "под-", "хо-"], c: 0},
+                {q: "Как пишется: (раз)дать?", a: ["раздать", "раз дать"], c: 0}
+            ],
+            "падежи": [
+                {q: "Вопросы Творительного падежа?", a: ["Кем? Чем?", "Кто? Что?", "Кого? Чего?"], c: 0}
+            ]
+        };
+
+        // Ищем в базе или создаем общий вопрос
+        let items = aiDB[Object.keys(aiDB).find(key => topic.includes(key))] || [
+            {q: `Вопрос про ${topic}?`, a: ["Да", "Нет", "Не знаю"], c: 0},
+            {q: `Как пишется ${topic}?`, a: ["Правильно", "С ошибкой"], c: 0}
+        ];
+
+        items.forEach(item => addQ(item.q, item.a, item.c));
+        alert(`ИИ сгенерировал вопросы по теме: ${topic}`);
+    }
+
     function openEditor(m, isImport = false) {
         mode = m;
         document.getElementById('sc-menu').classList.remove('active');
@@ -115,26 +132,16 @@
     function addQ(q="", a=["","",""], c=0) {
         const d = document.createElement('div'); d.className = 'editor-item';
         d.innerHTML = `
-            <input type="text" placeholder="Вопрос..." value="${q}" class="qi">
+            <input type="text" placeholder="Текст вопроса..." value="${q}" class="qi">
             ${a.map((t, i) => `
                 <div class="ans-row">
                     <input type="radio" name="r${Math.random()}" ${i===c?'checked':''}>
-                    <input type="text" value="${t}" class="ai" placeholder="Ответ ${i+1}">
+                    <input type="text" value="${t}" class="ai" placeholder="Вариант ${i+1}">
                 </div>
             `).join('')}
             <button onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; border:none; background:none; color:red;">✕</button>
         `;
         document.getElementById('factory').appendChild(d);
-    }
-
-    function smartAI() {
-        const topic = document.getElementById('ai-topic').value.toLowerCase();
-        const db = {
-            "не с глаголами": [{q: "Как пишется: (не)хочу?", a: ["не хочу", "нехочу"], c: 0}, {q: "Как пишется: (не)навидеть?", a: ["ненавидеть", "не навидеть"], c: 0}],
-            "животные": [{q: "Кто самый длинный?", a: ["Жираф", "Слон"], c: 0}]
-        };
-        const res = db[topic] ? db[topic][Math.floor(Math.random()*db[topic].length)] : {q: `Вопрос про ${topic}?`, a: ["Верно", "Нет"], c: 0};
-        addQ(res.q, res.a, res.c);
     }
 
     function play() {
@@ -156,44 +163,31 @@
     function render() {
         const it = qs[cur]; const st = document.getElementById('stage'); const ctrl = document.getElementById('controls');
         st.innerHTML = ""; ctrl.innerHTML = ""; isBusy = false;
-        updateFeedback();
+        
+        // Живые комментарии
+        const txt = document.getElementById('q-text');
+        if (errors >= 3) txt.innerHTML = `<span style="color:var(--err);">⚠️ Будь внимательнее! Уже ${errors} ошибки!</span>`;
+        else if (cur > 0 && errors === 0) txt.innerHTML = `<span style="color:var(--share);">🌟 Ты молодец! Идёшь без ошибок!</span>`;
+        else txt.innerText = it.q;
 
         if(mode === 'wheel') {
-            document.getElementById('q-text').innerText = "Крути колесо, чтобы получить вопрос!";
-            st.innerHTML = `<div style="position:absolute; top:10px; z-index:10; font-size:30px;">▼</div><canvas id="wheel-canvas" width="600" height="600"></canvas>`;
+            txt.innerText = "Крути колесо!";
+            st.innerHTML = `<canvas id="wheel-canvas" width="600" height="600"></canvas>`;
             ctrl.innerHTML = `<button class="btn btn-main" onclick="spinWheel()">КРУТИТЬ</button>`;
             drawWheel();
-        } 
-        else if(mode === 'slots') {
-            st.innerHTML = `<div class="slot-machine" id="sm"></div>`;
-            it.opts.forEach(() => document.getElementById('sm').innerHTML += `<div class="reel"><div class="slot-item">❓</div></div>`);
-            ctrl.innerHTML = `<button class="btn btn-main" onclick="spinSlots()">ЗАПУСК</button>`;
-        }
-        else if(mode === 'maze') {
-            st.innerHTML = `<div class="maze" id="mz"></div><div id="plr" style="font-size:40px; margin-top:10px;">🏃</div>`;
+        } else if(mode === 'mole') {
             it.opts.forEach((o, i) => {
-                const c = document.createElement('div'); c.className = 'cell'; c.innerText = o.t;
-                c.onclick = () => { document.getElementById('plr').style.transform = `translateX(${(i-0.5)*100}px)`; check(o.ok); };
-                document.getElementById('mz').appendChild(c);
+                const m = document.createElement('div'); m.className = 'obj mole';
+                m.style.left = (20 + i * 110) + "px"; m.innerText = o.t;
+                m.onclick = () => check(o.ok);
+                st.appendChild(m); setTimeout(() => m.classList.add('up'), 100);
             });
-        }
-        else { // Крот / Погоня / Кнопки
+        } else {
             it.opts.forEach(o => {
                 const b = document.createElement('button'); b.className = 'btn btn-main'; b.innerText = o.t;
                 b.onclick = () => check(o.ok);
                 ctrl.appendChild(b);
             });
-        }
-    }
-
-    function updateFeedback() {
-        const txt = document.getElementById('q-text');
-        if (errors >= 3) {
-            txt.innerHTML = `<span style="color:var(--err);">⚠️ Соберись! У тебя уже ${errors} ошибки!</span>`;
-        } else if (cur > 0 && errors === 0) {
-            txt.innerHTML = `<span style="color:var(--share);">🌟 Ты молодец! Ни одной ошибки!</span>`;
-        } else {
-            txt.innerText = qs[cur]?.q || "";
         }
     }
 
@@ -203,7 +197,6 @@
         if(cur < qs.length) setTimeout(render, 800); else finish();
     }
 
-    // --- ЛОГИКА ИГР ---
     function drawWheel() {
         const ctx = document.getElementById('wheel-canvas').getContext('2d');
         const arc = (Math.PI * 2) / qs.length;
@@ -222,33 +215,8 @@
         setTimeout(() => {
             const arc = 360 / qs.length;
             cur = Math.floor((360 - (deg % 360)) / arc) % qs.length;
-            const it = qs[cur];
-            document.getElementById('q-text').innerText = it.q;
-            document.getElementById('controls').innerHTML = "";
-            it.opts.forEach(o => {
-                const b = document.createElement('button'); b.className = 'btn btn-main'; b.innerText = o.t;
-                b.onclick = () => check(o.ok);
-                document.getElementById('controls').appendChild(b);
-            });
+            render();
         }, 4000);
-    }
-
-    function spinSlots() {
-        const reels = document.querySelectorAll('.reel');
-        reels.forEach((r, i) => {
-            r.innerHTML = "";
-            for(let j=0; j<15; j++) r.innerHTML += `<div class="slot-item">🎲</div>`;
-            r.innerHTML += `<div class="slot-item" style="color:var(--main)">${qs[cur].opts[i].t}</div>`;
-            setTimeout(() => r.style.transform = `translateY(-${(r.children.length-1)*80}px)`, i * 500);
-        });
-        setTimeout(() => {
-            document.getElementById('controls').innerHTML = "";
-            qs[cur].opts.forEach(o => {
-                const b = document.createElement('button'); b.className = 'btn btn-main'; b.innerText = o.t;
-                b.onclick = () => check(o.ok);
-                document.getElementById('controls').appendChild(b);
-            });
-        }, 3500);
     }
 
     function finish() {
@@ -256,7 +224,6 @@
         document.getElementById('sc-final').classList.add('active');
         document.getElementById('final-res').innerText = `${points}/${qs.length}`;
         if(points > 0) {
-            document.getElementById('final-msg').innerText = "Супер игра! 🎉";
             for(let i=0; i<100; i++) {
                 const c = document.createElement('div'); c.className='confetti';
                 c.style.left=Math.random()*100+'vw'; c.style.background=`hsl(${Math.random()*360},100%,50%)`;
