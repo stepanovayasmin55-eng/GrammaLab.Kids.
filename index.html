@@ -2,139 +2,226 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrammaLab Kids — Обучающая платформа</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GrammaLab Real Wheel Edition</title>
     <style>
-        :root { --bg: #ffffff; --light-blue: #e3f2fd; --main-blue: #00a2ff; --dark-blue: #0077b6; --text: #333; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        :root { --main: #00a2ff; --bg: #f4f7f9; --text: #2d3436; --ai: #6c5ce7; --share: #2ecc71; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
         
-        header { background: var(--main-blue); padding: 15px; text-align: center; color: white; border-bottom: 4px solid var(--dark-blue); }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; }
+        header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); sticky: top; z-index: 100; }
+        .logo { font-weight: 900; color: var(--main); font-size: 22px; }
 
-        /* Видео на главном экране */
-        .main-video { background: #000; border-radius: 15px; overflow: hidden; margin-bottom: 30px; border: 4px solid var(--main-blue); }
-        
-        /* Сетка игр */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
-        .card { background: var(--light-blue); border: 2px solid var(--main-blue); border-radius: 15px; padding: 25px; text-align: center; cursor: pointer; transition: 0.3s; font-weight: bold; color: var(--dark-blue); }
-        .card:hover { background: var(--main-blue); color: white; transform: translateY(-5px); }
-        .card span { font-size: 40px; display: block; margin-bottom: 10px; }
+        .screen { display: none; padding: 15px; max-width: 500px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Редактор (как Wordwall) */
-        #editor { background: #fdfdfd; border: 2px solid var(--main-blue); border-radius: 20px; padding: 30px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .input-group { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
-        input[type="text"] { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        /* РЕДАКТОР */
+        .editor-item { background: white; padding: 20px; border-radius: 24px; margin-bottom: 15px; border: 1px solid #e2e8f0; position: relative; }
+        input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #edf2f7; font-size: 16px; box-sizing: border-box; margin-bottom: 10px; outline: none; }
+        .ans-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        input[type="radio"] { width: 22px; height: 22px; accent-color: var(--main); }
+
+        /* КНОПКИ */
+        .btn { padding: 16px; border-radius: 18px; border: none; font-weight: 700; cursor: pointer; width: 100%; margin: 5px 0; font-size: 16px; transition: 0.2s; }
+        .btn-main { background: var(--main); color: white; box-shadow: 0 4px 0 #0081cc; }
+        .btn-ai { background: var(--ai); color: white; }
+        .btn-add { background: #fff; border: 2px dashed #cbd5e0; color: #718096; margin-top: 10px; }
+
+        /* ИГРОВОЕ ПОЛЕ */
+        #stage { background: white; border-radius: 30px; height: 420px; position: relative; border: 4px solid var(--main); overflow: hidden; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* Игровая зона */
-        #game-zone { display: none; text-align: center; }
-        .game-display { background: var(--light-blue); border: 3px solid var(--main-blue); border-radius: 20px; padding: 30px; margin: 20px 0; min-height: 200px; }
-        .game-img { max-width: 100%; height: 200px; object-fit: contain; border-radius: 10px; margin-bottom: 15px; background: white; }
-        
-        .btn-main { background: var(--main-blue); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; }
-        .wheel { width: 260px; height: 260px; border: 8px solid var(--main-blue); border-radius: 50%; margin: 20px auto; background: conic-gradient(var(--main-blue) 0% 25%, #fff 25% 50%, var(--main-blue) 50% 75%, #fff 75% 100%); transition: transform 3s cubic-bezier(0.1, 0, 0, 1); }
+        /* КОЛЕСО */
+        #wheel-container { position: relative; width: 300px; height: 300px; }
+        #wheel-canvas { width: 100%; height: 100%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
+        .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4757; z-index: 10; }
+
+        /* КОНФЕТТИ */
+        .confetti { position: fixed; width: 10px; height: 10px; z-index: 1000; animation: fall 3s linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 8px solid var(--main); display: flex; align-items: center; justify-content: center; margin: 20px auto; font-size: 35px; font-weight: bold; background: white; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1 style="margin: 0;">💎 GrammaLab Kids</h1>
+    <div class="logo">GrammaLab Pro</div>
+    <button onclick="location.reload()" style="background:none; border:none; font-size: 24px;">🏠</button>
 </header>
 
-<div class="container">
-    <div id="main-screen">
-        <div class="main-video">
-            <iframe width="100%" height="450" src="https://www.youtube.com/embed/S_8q0sO1RMo" frameborder="0" allowfullscreen></iframe>
-        </div>
-        
-        <h2 style="color: var(--dark-blue); text-align: center;">Выбери игру для практики:</h2>
-        
-        <div class="grid">
-            <div class="card" onclick="openEd('Викторина', '📝', false)"><span>📝</span>Викторина</div>
-            <div class="card" onclick="openEd('Колесо фортуны', '🎡', false)"><span>🎡</span>Колесо</div>
-            <div class="card" onclick="openEd('Сопоставить пары', '🔗', true)"><span>🔗</span>Сопоставить</div>
-            <div class="card" onclick="openEd('Закончи предложение', '✍️', true)"><span>✍️</span>Закончи</div>
-            <div class="card" onclick="openEd('Анаграмма', '🔠', true)"><span>🔠</span>Анаграмма</div>
-            <div class="card" onclick="openEd('Карточки', '🃏', true)"><span>🃏</span>Карточки</div>
-        </div>
-    </div>
-
-    <div id="editor">
-        <h2 id="ed-title" style="text-align: center; color: var(--dark-blue);">Настройка</h2>
-        <div class="input-group">
-            <div id="img-field" style="display:none;">
-                <label><b>Ссылка на картинку:</b></label>
-                <input type="text" id="img-url" placeholder="Вставь ссылку на картинку...">
-            </div>
-            <label><b>Твой вопрос или фраза:</b></label>
-            <input type="text" id="q-val" placeholder="Введите текст...">
-            
-            <div id="ans-block">
-                <label><b>Варианты (для Викторины/Колеса):</b></label>
-                <input type="text" id="a1" placeholder="Верный ответ">
-                <input type="text" id="a2" placeholder="Неверный вариант">
-            </div>
-        </div>
-        <button class="btn-main" onclick="play()">ЗАПУСТИТЬ ИГРУ</button>
-        <button class="btn-main" style="background:#ccc; margin-top:10px;" onclick="location.reload()">НАЗАД</button>
-    </div>
-
-    <div id="game-zone">
-        <h2 id="g-name"></h2>
-        <div class="game-display" id="g-display"></div>
-        <button class="btn-main" style="background:#ccc" onclick="location.reload()">ВЕРНУТЬСЯ К ВИДЕО</button>
+<div id="sc-menu" class="screen active">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('mole')"><span>🔨</span><br><b>Крот</b></div>
+        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('wheel')"><span>🎡</span><br><b>Колесо</b></div>
+        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('plane')"><span>✈️</span><br><b>Погоня</b></div>
+        <div style="background:white; padding:20px; border-radius:20px; text-align:center; border:1px solid #eee;" onclick="openEditor('cards')"><span>💡</span><br><b>Карточки</b></div>
     </div>
 </div>
 
-<script>
-    let currentMode = "";
-    let useImg = false;
+<div id="sc-editor" class="screen">
+    <input type="text" id="ai-topic" placeholder="Тема для ИИ (Космос, Еда...)">
+    <button class="btn btn-ai" onclick="smartAI()">✨ Gemini: Вопрос по теме</button>
+    <div id="factory"></div>
+    <button class="btn btn-add" onclick="addQ()">+ Добавить ещё вопрос</button>
+    <button class="btn btn-main" style="margin-top:20px" onclick="play()">ИГРАТЬ ▶️</button>
+</div>
 
-    function openEd(mode, icon, imgNeeded) {
-        currentMode = mode;
-        useImg = imgNeeded;
-        document.getElementById('main-screen').style.display = 'none';
-        document.getElementById('editor').style.display = 'block';
-        document.getElementById('ed-title').innerText = icon + " " + mode;
-        
-        // Показываем/скрываем поле картинки
-        document.getElementById('img-field').style.display = imgNeeded ? 'block' : 'none';
-        // Скрываем варианты для простых игр
-        document.getElementById('ans-block').style.display = (mode === 'Викторина' || mode === 'Колесо фортуны') ? 'block' : 'none';
+<div id="sc-game" class="screen">
+    <div id="q-text" style="text-align:center; font-weight:bold; margin-bottom:10px; font-size:18px;"></div>
+    <div id="stage"></div>
+</div>
+
+<div id="sc-final" class="screen" style="text-align:center;">
+    <h1>Финиш!</h1>
+    <div class="score-circle" id="final-score">0</div>
+    <p id="final-text"></p>
+    <button class="btn btn-main" onclick="location.reload()">В НАЧАЛО</button>
+</div>
+
+<script>
+    let mode = '', qs = [], cur = 0, points = 0, isSpinning = false;
+
+    function openEditor(m) {
+        mode = m;
+        document.getElementById('sc-menu').classList.remove('active');
+        document.getElementById('sc-editor').classList.add('active');
+        addQ();
+    }
+
+    function addQ(q="", a=["","",""], c=0) {
+        const d = document.createElement('div'); d.className = 'editor-item';
+        d.innerHTML = `
+            <input type="text" placeholder="Твой вопрос..." value="${q}" class="qi">
+            ${a.map((t, i) => `
+                <div class="ans-row">
+                    <input type="radio" name="r${Math.random()}" ${i===c?'checked':''}>
+                    <input type="text" value="${t}" class="ai" placeholder="Вариант ${i+1}">
+                </div>
+            `).join('')}
+            <button onclick="this.parentElement.remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:red; font-size:18px;">✕</button>
+        `;
+        document.getElementById('factory').appendChild(d);
+    }
+
+    function smartAI() {
+        const topic = document.getElementById('ai-topic').value || "Общее";
+        const database = {
+            "Космос": {q: "Первый человек в космосе?", a: ["Гагарин", "Армстронг", "Маск"], c: 0},
+            "Животные": {q: "У кого самая длинная шея?", a: ["Жираф", "Зебра", "Олень"], c: 0},
+            "Математика": {q: "Сколько будет 2 + 2 * 2?", a: ["6", "8", "4"], c: 0}
+        };
+        const res = database[topic] || {q: `Напиши вопрос про ${topic}?`, a: ["Ответ 1", "Ответ 2", "Ответ 3"], c: 0};
+        addQ(res.q, res.a, res.c);
     }
 
     function play() {
-        const val = document.getElementById('q-val').value;
-        const img = document.getElementById('img-url').value;
-        if(!val) return alert("Впиши что-нибудь!");
+        qs = []; points = 0;
+        document.querySelectorAll('.editor-item').forEach(box => {
+            const q = box.querySelector('.qi').value;
+            const opts = [];
+            box.querySelectorAll('.ans-row').forEach(row => {
+                opts.push({ t: row.querySelector('.ai').value, ok: row.querySelector('input').checked });
+            });
+            if(q) qs.push({q, opts});
+        });
+        document.getElementById('sc-editor').classList.remove('active');
+        document.getElementById('sc-game').classList.add('active');
+        cur = 0; render();
+    }
 
-        document.getElementById('editor').style.display = 'none';
-        document.getElementById('game-zone').style.display = 'block';
-        document.getElementById('g-name').innerText = currentMode;
-        
-        const display = document.getElementById('g-display');
-        display.innerHTML = "";
+    function render() {
+        const it = qs[cur]; const st = document.getElementById('stage');
+        st.innerHTML = ""; document.getElementById('q-text').innerText = it.q;
 
-        // Если нужна картинка — добавляем её
-        if(useImg && img) {
-            display.innerHTML += `<img src="${img}" class="game-img">`;
-        }
-
-        if(currentMode === 'Колесо фортуны') {
-            display.innerHTML += `<div class="wheel" id="wh" onclick="spinWheel()"></div><p>Нажми на колесо, чтобы крутить!</p>`;
-        } else if(currentMode === 'Викторина') {
-            display.innerHTML += `<div style="font-size:24px; margin-bottom:20px;">${val}</div>
-                <button class="card" style="width:100%" onclick="alert('Верно!')">${document.getElementById('a1').value}</button>
-                <button class="card" style="width:100%; margin-top:10px" onclick="alert('Подумай еще!')">${document.getElementById('a2').value}</button>`;
+        if(mode === 'wheel') {
+            st.innerHTML = `
+                <div id="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheel-canvas" width="600" height="600"></canvas>
+                </div>
+                <button class="btn btn-main" style="width:200px" onclick="spinWheel()">КРУТИТЬ!</button>
+            `;
+            drawWheel(it.opts);
         } else {
-            // Для остальных игр (Анаграмма, Сопоставление и т.д.)
-            display.innerHTML += `<div style="font-size:24px;">Задание: ${val}</div>`;
+            it.opts.forEach(o => {
+                const b = document.createElement('button'); b.className = 'btn btn-main'; b.innerText = o.t;
+                b.onclick = () => { if(o.ok) points++; next(); };
+                st.appendChild(b);
+            });
         }
     }
 
+    function drawWheel(opts) {
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF'];
+        const arc = (Math.PI * 2) / opts.length;
+
+        ctx.clearRect(0, 0, 600, 600);
+        opts.forEach((o, i) => {
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.beginPath();
+            ctx.moveTo(300, 300);
+            ctx.arc(300, 300, 280, arc * i, arc * (i + 1));
+            ctx.fill();
+            
+            ctx.save();
+            ctx.translate(300, 300);
+            ctx.rotate(arc * i + arc / 2);
+            ctx.fillStyle = "#333";
+            ctx.font = "bold 24px Arial";
+            ctx.fillText(o.t.substring(0, 10), 100, 10);
+            ctx.restore();
+        });
+    }
+
     function spinWheel() {
-        let r = Math.random() * 3600 + 1800;
-        document.getElementById('wh').style.transform = `rotate(${r}deg)`;
-        setTimeout(() => alert("Твой вопрос: " + document.getElementById('q-val').value), 3100);
+        if(isSpinning) return;
+        isSpinning = true;
+        const wheel = document.getElementById('wheel-canvas');
+        const randDeg = 1800 + Math.random() * 2000;
+        wheel.style.transform = `rotate(${randDeg}deg)`;
+        
+        setTimeout(() => {
+            const it = qs[cur];
+            const arc = 360 / it.opts.length;
+            const actualDeg = (randDeg % 360);
+            const prizeIdx = Math.floor((360 - actualDeg) / arc) % it.opts.length;
+            
+            if(it.opts[prizeIdx].ok) points++;
+            isSpinning = false;
+            next();
+        }, 4000);
+    }
+
+    function next() {
+        cur++;
+        if(cur < qs.length) setTimeout(render, 500);
+        else finish();
+    }
+
+    function finish() {
+        document.getElementById('sc-game').classList.remove('active');
+        document.getElementById('sc-final').classList.add('active');
+        document.getElementById('final-score').innerText = `${points}/${qs.length}`;
+        if(points > 0) {
+            document.getElementById('final-text').innerText = "Ты супер! 🎊";
+            createConfetti();
+        } else {
+            document.getElementById('final-text').innerText = "Не сдавайся! 💪";
+        }
+    }
+
+    function createConfetti() {
+        for(let i=0; i<100; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            c.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }
     }
 </script>
 </body>
