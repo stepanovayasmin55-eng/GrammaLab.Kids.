@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab Pro 8.1</title>
+    <title>GrammaLab Pro 8.2</title>
     <style>
         :root { --main: #00a2ff; --bg: #f0f4f8; --ai: #6c5ce7; --share: #2ecc71; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #2d3436; }
@@ -17,7 +17,7 @@
         .mode-card { background: white; padding: 20px; border-radius: 22px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .mode-card span { display: block; font-size: 32px; margin-bottom: 5px; }
 
-        /* РЕДАКТОР ПО ТВОЕМУ СКРИНШОТУ */
+        /* РЕДАКТОР ПО СКРИНШОТУ */
         .top-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .btn-top { padding: 18px; border-radius: 20px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-ai { background: var(--ai); }
@@ -28,16 +28,15 @@
 
         input[type="text"] { width: 100%; padding: 15px; border: 2px solid #f1f2f6; border-radius: 15px; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; outline: none; }
         .ans-row { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; }
-        input[type="radio"] { width: 22px; height: 22px; accent-color: var(--main); }
+        input[type="radio"] { width: 22px; height: 22px; accent-color: var(--main); flex-shrink: 0; cursor: pointer; }
 
-        .btn-play { background: var(--main); color: white; width: 100%; padding: 20px; border-radius: 25px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #0081cc; }
+        .btn-play { background: var(--main); color: white; width: 100%; padding: 20px; border-radius: 25px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 #0081cc; margin-top: 10px; }
+        .btn-add { background: #fff; color: var(--main); border: 2px dashed var(--main); width: 100%; padding: 15px; border-radius: 20px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
 
-        /* ПОЛЕ ИГРЫ */
-        #stage { background: white; border-radius: 30px; min-height: 380px; position: relative; border: 4px solid var(--main); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .mole { width: 70px; height: 90px; background: #8d6e63; border-radius: 30px 30px 10px 10px; position: absolute; bottom: -100px; transition: 0.4s; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; text-align: center; }
+        /* ИГРА */
+        #stage { background: white; border-radius: 30px; min-height: 380px; position: relative; border: 4px solid var(--main); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .mole { width: 70px; height: 90px; background: #8d6e63; border-radius: 30px 30px 10px 10px; position: absolute; bottom: -100px; transition: 0.4s; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; text-align: center; font-weight: bold; cursor: pointer; }
         .mole.up { bottom: 60px; }
-        .cloud { position: absolute; background: white; padding: 12px 18px; border-radius: 20px; border: 2px solid var(--main); font-weight: bold; animation: fly 4s linear infinite; }
-        @keyframes fly { from { left: 110%; } to { left: -180px; } }
     </style>
 </head>
 <body>
@@ -63,36 +62,40 @@
 
 <div id="sc-editor" class="screen">
     <div class="top-btns">
-        <button class="btn-top btn-ai" onclick="geminiAI()">✨ ИИ ПО ТЕМЕ</button>
+        <button class="btn-top btn-ai" onclick="runAI()">✨ ИИ ПО ТЕМЕ</button>
         <button class="btn-top btn-code" onclick="exportGame()">📤 КОД ИГРЫ</button>
     </div>
     <div id="factory"></div>
-    <button class="btn-play" onclick="play()">ИГРАТЬ ▶️</button>
+    <button class="btn-add" onclick="addQ()">➕ ДОБАВИТЬ ВОПРОС</button>
+    <button class="btn-play" onclick="playGame()">ИГРАТЬ ▶️</button>
 </div>
 
 <div id="sc-game" class="screen">
     <div id="q-text" style="text-align:center; font-weight:bold; margin-bottom:15px; font-size:18px;"></div>
     <div id="stage"></div>
-    <div id="options" style="width:100%; margin-top:15px;"></div>
+    <div id="game-options" style="margin-top:20px; width:100%;"></div>
 </div>
 
 <script>
     let mode = '', qs = [], cur = 0, score = 0;
 
-    const grammarAI = {
+    const aiData = {
         "спряжение": [
-            {q: "Глагол 'Слышать' — это...", a: ["II спряжение (искл.)", "I спряжение"], c: 0},
-            {q: "Вставьте букву: ты бор..шься", a: ["е", "и"], c: 0}
+            {q: "Глагол 'Видеть' — это какое спряжение?", a: ["II спряжение (искл.)", "I спряжение"], c: 0},
+            {q: "Вставьте букву: Он се..т рожь", a: ["е (I спр.)", "и (II спр.)"], c: 0},
+            {q: "Глагол II спряжения:", a: ["Красить", "Гулять", "Думать"], c: 0}
         ],
         "не с глаголами": [
-            {q: "Как пишется: (не)годовать?", a: ["Слитно", "Раздельно"], c: 0},
-            {q: "Как пишется: (не)знал?", a: ["Раздельно", "Слитно"], c: 0}
+            {q: "Как пишется: (не)здоровится?", a: ["Слитно (без НЕ не употр.)", "Раздельно"], c: 0},
+            {q: "Выберите верное написание:", a: ["Не пришел", "Непришел"], c: 0}
         ],
         "прямая речь": [
-            {q: "Схема прямой речи перед словами автора:", a: ["'П', - а.", "А: 'П.'"], c: 0}
+            {q: "Перед прямой речью после слов автора ставится...", a: ["Двоеточие", "Тире", "Запятая"], c: 0},
+            {q: "Выберите верную схему:", a: ["А: 'П.'", "'П', - а."], c: 0}
         ],
         "однородные": [
-            {q: "Нужна ли запятая: Он пел громко и красиво.", a: ["Нет", "Да"], c: 0}
+            {q: "Нужна ли запятая: Сильный, но короткий дождь.", a: ["Да", "Нет"], c: 0},
+            {q: "Схема О и О требует запятой?", a: ["Нет", "Да"], c: 0}
         ]
     };
 
@@ -105,44 +108,51 @@
     }
 
     function addQ(q="", a=["","",""], c=0) {
+        const id = Math.random().toString(36).substr(2, 9);
         const d = document.createElement('div'); d.className = 'editor-card';
         d.innerHTML = `
             <button class="del-btn" onclick="this.parentElement.remove()">✕</button>
             <input type="text" placeholder="Вопрос..." value="${q}" class="qi">
             ${[0,1,2].map(i => `
                 <div class="ans-row">
-                    <input type="radio" name="r${Math.random()}" ${i===c?'checked':''}>
+                    <input type="radio" name="r${id}" ${i===c?'checked':''}>
                     <input type="text" placeholder="Ответ ${i+1}" value="${a[i]||''}" class="ai">
                 </div>
             `).join('')}`;
         document.getElementById('factory').appendChild(d);
     }
 
-    function geminiAI() {
-        const t = prompt("Выбери: спряжение, не с глаголами, прямая речь, однородные").toLowerCase();
-        if(grammarAI[t]) grammarAI[t].forEach(it => addQ(it.q, it.a, it.c));
+    function runAI() {
+        const t = prompt("Введи тему: спряжение, не с глаголами, прямая речь, однородные").toLowerCase();
+        if(aiData[t]) {
+            aiData[t].forEach(it => addQ(it.q, it.a, it.c));
+        } else { alert("Тема не найдена!"); }
     }
 
     function exportGame() {
-        saveData();
+        saveAll();
         const code = btoa(unescape(encodeURIComponent(JSON.stringify({m:mode, q:qs}))));
-        const dummy = document.createElement("input");
-        document.body.appendChild(dummy); dummy.value = code; dummy.select();
-        document.execCommand("copy"); document.body.removeChild(dummy);
-        alert("Код игры скопирован! Отправь его другу.");
+        navigator.clipboard.writeText(code).then(() => {
+            alert("КОД СКОПИРОВАН!\nТеперь просто отправь его другу.");
+        }).catch(() => {
+            prompt("Скопируй этот код вручную:", code);
+        });
     }
 
     function importGame() {
-        const code = prompt("Вставь код сюда:");
+        const code = prompt("Вставь код игры сюда:");
         if(!code) return;
-        const data = JSON.parse(decodeURIComponent(escape(atob(code))));
-        mode = data.m; qs = data.q;
-        openEditor(mode);
-        document.getElementById('factory').innerHTML = "";
-        qs.forEach(it => addQ(it.q, it.opts.map(o=>o.t), it.opts.findIndex(o=>o.ok)));
+        try {
+            const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+            mode = data.m; qs = data.q;
+            document.getElementById('sc-menu').classList.remove('active');
+            document.getElementById('sc-editor').classList.add('active');
+            document.getElementById('factory').innerHTML = "";
+            qs.forEach(it => addQ(it.q, it.opts.map(o=>o.t), it.opts.findIndex(o=>o.ok)));
+        } catch(e) { alert("Неверный код!"); }
     }
 
-    function saveData() {
+    function saveAll() {
         qs = [];
         document.querySelectorAll('.editor-card').forEach(card => {
             const q = card.querySelector('.qi').value;
@@ -155,48 +165,43 @@
         });
     }
 
-    function play() {
-        saveData();
-        if(qs.length === 0) return;
+    function playGame() {
+        saveAll();
+        if(qs.length === 0) return alert("Создай хотя бы один вопрос!");
         document.getElementById('sc-editor').classList.remove('active');
         document.getElementById('sc-game').classList.add('active');
-        cur = 0; score = 0; render();
+        cur = 0; score = 0; renderStage();
     }
 
-    function render() {
-        const it = qs[cur]; const st = document.getElementById('stage'); const op = document.getElementById('options');
+    function renderStage() {
+        const it = qs[cur]; const st = document.getElementById('stage'); const op = document.getElementById('game-options');
         st.innerHTML = ""; op.innerHTML = ""; document.getElementById('q-text').innerText = it.q;
 
-        const check = (o) => {
+        const handleSelect = (o) => {
             if(o.ok) score++;
-            cur++; if(cur < qs.length) render(); else finish();
+            cur++; if(cur < qs.length) renderStage(); else showResult();
         };
 
         if(mode === 'mole') {
             it.opts.forEach((o, i) => {
-                const h = document.createElement('div'); h.style=`width:80px; height:40px; background:#3d2b1f; border-radius:50%; position:absolute; bottom:60px; left:${15+i*30}%;`;
+                const h = document.createElement('div'); h.style=`width:80px; height:40px; background:#3d2b1f; border-radius:50%; position:absolute; bottom:60px; left:${10+i*30}%;`;
                 const m = document.createElement('div'); m.className = 'mole'; m.innerText = o.t;
-                m.onclick = () => check(o); h.appendChild(m); st.appendChild(h);
-                setTimeout(() => m.classList.add('up'), 100);
-            });
-        } else if(mode === 'plane') {
-            it.opts.forEach((o, i) => {
-                const c = document.createElement('div'); c.className = 'cloud'; c.innerText = o.t;
-                c.style.top = (40 + i*90) + "px"; c.onclick = () => check(o); st.appendChild(c);
+                m.onclick = () => handleSelect(o); h.appendChild(m); st.appendChild(h);
+                setTimeout(() => m.classList.add('up'), 100 + i*200);
             });
         } else {
             it.opts.forEach(o => {
-                const b = document.createElement('button'); b.className = 'btn-play'; b.style="margin-bottom:10px;"; b.innerText = o.t;
-                b.onclick = () => check(o); op.appendChild(b);
+                const b = document.createElement('button'); b.className = 'btn-play'; b.style="margin-bottom:10px"; b.innerText = o.t;
+                b.onclick = () => handleSelect(o); op.appendChild(b);
             });
         }
     }
 
-    function finish() {
-        document.getElementById('q-text').innerText = "УРА!";
-        document.getElementById('stage').innerHTML = `<h2>Твой счет: ${score}/${qs.length}</h2><button class="btn-play" onclick="location.reload()">МЕНЮ</button>`;
-        document.getElementById('options').innerHTML = "";
+    function showResult() {
+        document.getElementById('stage').innerHTML = `<h2>Твой счет: ${score}/${qs.length} 🎉</h2><button class="btn-play" onclick="location.reload()">В МЕНЮ</button>`;
+        document.getElementById('game-options').innerHTML = "";
     }
 </script>
 </body>
 </html>
+
