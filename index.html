@@ -3,116 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab Pro 10.0</title>
+    <title>GrammaLab Ultimate 11.0</title>
     <style>
         :root { --main: #00a2ff; --bg: #f0f4f8; --ai: #6c5ce7; --share: #2ecc71; --red: #ff7675; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); touch-action: manipulation; overflow-x: hidden; }
         header { background: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { font-weight: 900; color: var(--main); font-size: 22px; }
+        .logo { font-weight: 900; color: var(--main); font-size: 20px; }
         .screen { display: none; padding: 15px; max-width: 500px; margin: 0 auto; }
         .active { display: block; }
 
         /* МЕНЮ */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .mode-card { background: white; padding: 20px; border-radius: 22px; text-align: center; cursor: pointer; border: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; }
-        .mode-card:active { transform: scale(0.95); }
-        .mode-card span { display: block; font-size: 32px; margin-bottom: 5px; }
+        .mode-card { background: white; padding: 20px; border-radius: 22px; text-align: center; cursor: pointer; border: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .mode-card span { display: block; font-size: 30px; margin-bottom: 5px; }
 
-        /* РЕДАКТОР */
-        .top-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .btn-top { padding: 15px; border-radius: 18px; border: none; color: white; font-weight: bold; cursor: pointer; }
-        .editor-card { background: white; border-radius: 25px; padding: 20px; position: relative; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #f1f2f6; border-radius: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
-        .ans-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        /* ИГРОВОЕ ПОЛЕ */
+        #stage { background: white; border-radius: 30px; height: 380px; position: relative; border: 4px solid var(--main); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .btn-play { background: var(--main); color: white; width: 100%; padding: 18px; border-radius: 22px; border: none; font-size: 18px; font-weight: 900; cursor: pointer; margin-top: 10px; }
         
-        /* ГЕЙМПЛЕЙ */
-        #stage { background: white; border-radius: 30px; height: 380px; position: relative; border: 4px solid var(--main); overflow: hidden; }
-        .btn-play { background: var(--main); color: white; width: 100%; padding: 18px; border-radius: 22px; border: none; font-size: 18px; font-weight: 900; box-shadow: 0 5px 0 #0081cc; cursor: pointer; margin-top: 10px; }
+        /* КРОТ */
+        .mole { width: 70px; height: 90px; background: #8d6e63; border-radius: 20px 20px 5px 5px; position: absolute; bottom: -110px; transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 10px; font-weight: bold; border: 3px solid #5d4037; }
+        .mole.up { bottom: 50px; }
 
-        /* АНИМАЦИИ */
-        .mole { width: 80px; height: 100px; background: #8d6e63; border-radius: 20px 20px 5px 5px; position: absolute; bottom: -110px; transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; font-weight: bold; border: 3px solid #5d4037; }
-        .mole.up { bottom: 40px; }
+        /* КОЛЕСО */
+        #wheel { width: 260px; height: 260px; border-radius: 50%; border: 8px solid #333; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: conic-gradient(var(--red) 0 90deg, #fdcb6e 90deg 180deg, #74b9ff 180deg 270deg, #55efc4 270deg 360deg); position: relative; }
         
-        #wheel { width: 280px; height: 280px; border-radius: 50%; border: 8px solid #333; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: conic-gradient(var(--red) 0 90deg, #fdcb6e 90deg 180deg, #74b9ff 180deg 270deg, #55efc4 270deg 360deg); margin: 20px auto; position: relative; }
-        #pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid red; z-index: 10; }
+        /* ПАРЫ */
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 90%; }
+        .card { height: 80px; background: var(--main); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; cursor: pointer; text-align: center; padding: 5px; }
+        .card.open { background: white; color: #333; border: 2px solid var(--main); }
 
-        .cloud { position: absolute; background: white; padding: 15px; border-radius: 15px; border: 2px solid var(--main); font-weight: bold; animation: fly 4s linear infinite; white-space: nowrap; cursor: pointer; }
+        /* ОБЛАКА */
+        .cloud { position: absolute; background: white; padding: 12px; border-radius: 15px; border: 2px solid var(--main); font-weight: bold; animation: fly 4s linear infinite; cursor: pointer; white-space: nowrap; }
         @keyframes fly { from { left: 110%; } to { left: -200px; } }
-
-        #player { width: 40px; height: 40px; background: gold; border-radius: 50%; position: absolute; z-index: 10; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.1s; border: 2px solid #333; }
-        .maze-wall { background: #2d3436; position: absolute; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">GrammaLab 10.0</div>
+    <div class="logo">GrammaLab Ultimate</div>
     <div onclick="location.reload()" style="cursor:pointer; font-size: 24px;">🏠</div>
 </header>
 
 <div id="sc-menu" class="screen active">
     <div class="grid">
-        <button class="mode-card" onclick="setMode('mole')"><span>🔨</span>Крот</button>
-        <button class="mode-card" onclick="setMode('wheel')"><span>🎡</span>Колесо</button>
-        <button class="mode-card" onclick="setMode('maze')"><span>👾</span>Лабиринт</button>
-        <button class="mode-card" onclick="setMode('plane')"><span>✈️</span>Погоня</button>
-        <button class="mode-card" onclick="setMode('slots')"><span>🎰</span>Автомат</button>
-        <button class="mode-card" onclick="setMode('cards')"><span>💡</span>Карточки</button>
-        <button class="mode-card" onclick="setMode('pairs')"><span>👥</span>Пары</button>
-        <button class="mode-card" onclick="setMode('anagram')"><span>🔠</span>Слова</button>
+        <button class="mode-card" onclick="setM('mole')"><span>🔨</span>Крот</button>
+        <button class="mode-card" onclick="setM('wheel')"><span>🎡</span>Колесо</button>
+        <button class="mode-card" onclick="setM('maze')"><span>👾</span>Лабиринт</button>
+        <button class="mode-card" onclick="setM('plane')"><span>✈️</span>Погоня</button>
+        <button class="mode-card" onclick="setM('slots')"><span>🎰</span>Слоты</button>
+        <button class="mode-card" onclick="setM('cards')"><span>💡</span>Карточки</button>
+        <button class="mode-card" onclick="setM('pairs')"><span>👥</span>Пары</button>
+        <button class="mode-card" onclick="setM('anagram')"><span>🔠</span>Слова</button>
     </div>
-    <button class="btn-play" style="margin-top:20px; background:var(--share);" onclick="importCode()">📥 ЗАГРУЗИТЬ КОД</button>
+    <button class="btn-play" style="margin-top:20px; background:var(--share);" onclick="importGame()">📥 ЗАГРУЗИТЬ КОД</button>
 </div>
 
 <div id="sc-editor" class="screen">
     <div class="top-btns">
-        <button class="btn-top" style="background:var(--ai)" onclick="runAI()">✨ ИИ ТЕМЫ</button>
-        <button class="btn-top" style="background:var(--share)" onclick="exportCode()">📦 КОД ИГРЫ</button>
+        <button class="btn-top" style="background:var(--ai); width:48%;" onclick="useAI()">✨ ИИ ТЕМЫ</button>
+        <button class="btn-top" style="background:var(--share); width:48%;" onclick="exportGame()">📦 КОД ИГРЫ</button>
     </div>
     <div id="factory"></div>
-    <button class="btn-play" style="background:#fff; color:var(--main); border:2px dashed var(--main); box-shadow:none;" onclick="addQ()">➕ ДОБАВИТЬ ВОПРОС</button>
-    <button class="btn-play" onclick="startPlay()">ИГРАТЬ ▶️</button>
+    <button class="btn-play" style="background:#fff; color:var(--main); border:2px dashed var(--main);" onclick="addQ()">➕ ДОБАВИТЬ ВОПРОС</button>
+    <button class="btn-play" onclick="startGame()">ИГРАТЬ ▶️</button>
 </div>
 
 <div id="sc-game" class="screen">
-    <h3 id="q-text" style="text-align:center; min-height: 50px;"></h3>
+    <h3 id="q-text" style="text-align:center; min-height: 40px; margin-bottom: 10px;"></h3>
     <div id="stage"></div>
-    <div id="controls" style="margin-top:15px;"></div>
+    <div id="controls" style="margin-top:15px; width:100%;"></div>
 </div>
 
 <script>
     let mode = '', qs = [], cur = 0, score = 0, rot = 0;
 
-    function setMode(m) { mode = m; show('sc-editor'); document.getElementById('factory').innerHTML = ""; addQ(); }
+    function setM(m) { mode = m; show('sc-editor'); document.getElementById('factory').innerHTML = ""; addQ(); }
 
     function addQ(q="", a=["","",""], c=0) {
         const d = document.createElement('div'); d.className = 'editor-card';
         const gid = Math.random().toString(36).substr(2, 5);
-        d.innerHTML = `<button class="del-btn" style="position:absolute; right:10px; top:10px; border:none; background:none; color:red; font-size:20px;" onclick="this.parentElement.remove()">✕</button>
-            <input type="text" placeholder="Вопрос..." value="${q}" class="qi">
-            ${[0,1,2].map(i => `<div class="ans-row">
+        d.style = "background:white; padding:15px; border-radius:20px; margin-bottom:10px; position:relative;";
+        d.innerHTML = `<button onclick="this.parentElement.remove()" style="position:absolute; right:10px; top:10px; border:none; background:none; color:red;">✕</button>
+            <input type="text" placeholder="Вопрос..." value="${q}" class="qi" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px;">
+            ${[0,1,2].map(i => `<div style="display:flex; gap:10px; margin-bottom:5px;">
                 <input type="radio" name="r${gid}" ${i===c?'checked':''}>
-                <input type="text" placeholder="Ответ..." value="${a[i]||''}" class="ai">
+                <input type="text" placeholder="Ответ..." value="${a[i]||''}" class="ai" style="width:100%; padding:5px; border-radius:5px; border:1px solid #eee;">
             </div>`).join('')}`;
         document.getElementById('factory').appendChild(d);
     }
 
-    function runAI() {
-        const t = prompt("Тема (спряжение, не, речь):").toLowerCase();
-        const db = {
-            "спряж": [{q:"Брить — это спряжение...", a:["I (искл)","II"], c:0},{q:"Слышать — это...", a:["II (искл)","I"], c:0}],
-            "не": [{q:"(Не)знаю пишется...", a:["Раздельно","Слитно"], c:0}]
+    function useAI() {
+        const t = prompt("Введите тему (спряжение, не, речь):").toLowerCase();
+        const data = {
+            "спряж": [{q:"Брить — это...", a:["I спр (искл)","II спр"], c:0},{q:"Видеть — это...", a:["II спр (искл)","I спр"], c:0}],
+            "не": [{q:"(Не)был пишется...", a:["Раздельно","Слитно"], c:0}]
         };
-        for(let k in db) if(t.includes(k)) db[k].forEach(i => addQ(i.q, i.a, i.c));
+        for(let k in data) if(t.includes(k)) data[k].forEach(i => addQ(i.q, i.a, i.c));
     }
 
-    function exportCode() {
+    function exportGame() {
         save();
         const code = btoa(unescape(encodeURIComponent(JSON.stringify({m:mode, q:qs}))));
         prompt("ТВОЙ КОД:", code);
     }
 
-    function importCode() {
+    function importGame() {
         const c = prompt("Вставь код:"); if(!c) return;
         const d = JSON.parse(decodeURIComponent(escape(atob(c))));
         mode = d.m; qs = d.q; show('sc-editor');
@@ -125,87 +121,85 @@
         document.querySelectorAll('.editor-card').forEach(card => {
             const q = card.querySelector('.qi').value;
             const opts = [];
-            card.querySelectorAll('.ans-row').forEach(row => {
-                const t = row.querySelector('.ai').value;
+            card.querySelectorAll('div').forEach((row, i) => {
+                const t = row.querySelector('.ai')?.value;
                 if(t) opts.push({ t, ok: row.querySelector('input[type="radio"]').checked });
             });
             if(q) qs.push({q, opts});
         });
     }
 
-    function startPlay() { save(); if(!qs.length) return; cur = 0; score = 0; show('sc-game'); render(); }
+    function startGame() { save(); if(!qs.length) return; cur = 0; score = 0; show('sc-game'); render(); }
 
     function render() {
         const it = qs[cur]; const st = document.getElementById('stage'); const ct = document.getElementById('controls');
         st.innerHTML = ""; ct.innerHTML = ""; 
         
-        const check = (o) => {
-            if(o.ok) score++; else alert("Неверно!");
+        const next = (win) => {
+            if(win) score++;
             cur++; if(cur < qs.length) render(); else finish();
         };
 
-        if(mode === 'wheel' && !it.active) {
-            document.getElementById('q-text').innerText = "Крути колесо, чтобы выбрать вопрос!";
-            st.innerHTML = `<div id="pointer"></div><div id="wheel"></div>`;
-            const w = document.getElementById('wheel');
+        if (mode === 'wheel' && !it.isWheelDone) {
+            document.getElementById('q-text').innerText = "Крути для выбора вопроса!";
+            st.innerHTML = `<div style="position:absolute; top:10px; width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:30px solid red; z-index:5;"></div><div id="wheel"></div>`;
             qs.forEach((_, i) => {
                 const l = document.createElement('div');
                 l.style = `position:absolute; width:100%; text-align:center; top:45%; transform:rotate(${i*(360/qs.length)}deg); color:white; font-weight:bold; font-size:12px;`;
-                l.innerText = "ВОПРОС " + (i+1); w.appendChild(l);
+                l.innerText = "№" + (i+1); document.getElementById('wheel').appendChild(l);
             });
-            ct.innerHTML = `<button class="btn-play" onclick="spinWheel()">КРУТИТЬ! 🎡</button>`;
+            ct.innerHTML = `<button class="btn-play" onclick="spinW()">КРУТИТЬ! 🎡</button>`;
         } else if (mode === 'mole') {
             document.getElementById('q-text').innerText = it.q;
             it.opts.forEach((o, i) => {
                 const h = document.createElement('div'); h.style = `width:80px;height:20px;background:#333;border-radius:50%;position:absolute;bottom:40px;left:${15+i*30}%`;
                 const m = document.createElement('div'); m.className = 'mole'; m.innerText = o.t;
-                m.onclick = () => check(o); h.appendChild(m); st.appendChild(h);
-                setTimeout(() => m.classList.add('up'), 300 + i*300);
+                m.onclick = () => next(o.ok); h.appendChild(m); st.appendChild(h);
+                setTimeout(() => m.classList.add('up'), 200 + i*300);
             });
-        } else if (mode === 'maze') {
-            document.getElementById('q-text').innerText = it.q;
-            st.innerHTML = `<div id="player">🤖</div><div class="maze-wall" style="top:100px;left:0;width:250px;height:15px;"></div><div class="maze-wall" style="top:220px;right:0;width:250px;height:15px;"></div>`;
-            it.opts.forEach((o, i) => {
-                const b = document.createElement('button'); b.className = 'btn-play'; b.innerText = o.t;
-                b.style = `width:auto; position:absolute; left:${20+i*130}px; bottom:20px; font-size:12px; padding:10px;`;
-                b.onclick = () => check(o); st.appendChild(b);
+        } else if (mode === 'pairs') {
+            document.getElementById('q-text').innerText = "Найди пары (Вопрос + Ответ)";
+            const cards = [];
+            qs.forEach((q, i) => {
+                cards.push({t: q.q, id: i, type: 'q'});
+                cards.push({t: q.opts.find(o=>o.ok).t, id: i, type: 'a'});
             });
-            ct.innerHTML = `<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"><button class="btn-top" style="background:#444" onclick="mve(-30,0)">⬅️</button><div style="display:grid; gap:5px;"><button class="btn-top" style="background:#444" onclick="mve(0,-30)">⬆️</button><button class="btn-top" style="background:#444" onclick="mve(0,30)">⬇️</button></div><button class="btn-top" style="background:#444" onclick="mve(30,0)">➡️</button></div>`;
-            document.getElementById('player').style.top = "10px"; document.getElementById('player').style.left = "10px";
+            cards.sort(() => Math.random() - 0.5);
+            st.innerHTML = `<div class="card-grid"></div>`;
+            cards.forEach(c => {
+                const el = document.createElement('div'); el.className = 'card'; el.innerText = "?";
+                el.onclick = () => { el.innerText = c.t; el.classList.add('open'); /* Тут логика проверки */ };
+                st.querySelector('.card-grid').appendChild(el);
+            });
+            ct.innerHTML = `<button class="btn-play" onclick="finish()">Я ВСЁ НАШЁЛ!</button>`;
         } else if (mode === 'plane') {
             document.getElementById('q-text').innerText = it.q;
             it.opts.forEach((o, i) => {
                 const c = document.createElement('div'); c.className = 'cloud'; c.innerText = o.t;
-                c.style.top = (60 + i*90) + "px"; c.style.animationDelay = (i*0.8) + "s";
-                c.onclick = () => check(o); st.appendChild(c);
+                c.style.top = (50 + i*100) + "px"; c.style.animationDelay = (i*0.7) + "s";
+                c.onclick = () => next(o.ok); st.appendChild(c);
             });
         } else {
             document.getElementById('q-text').innerText = it.q;
             it.opts.forEach(o => {
                 const b = document.createElement('button'); b.className = 'btn-play'; b.innerText = o.t;
-                b.onclick = () => check(o); ct.appendChild(b);
+                b.onclick = () => next(o.ok); ct.appendChild(b);
             });
         }
     }
 
-    function spinWheel() {
+    function spinW() {
         const w = document.getElementById('wheel'); rot += 1800 + Math.random() * 360;
         w.style.transform = `rotate(${rot}deg)`;
         setTimeout(() => {
-            const index = Math.floor(Math.random() * qs.length);
-            qs[index].active = true; cur = index; render();
+            const idx = Math.floor(Math.random() * qs.length);
+            qs[idx].isWheelDone = true; cur = idx; render();
         }, 4000);
     }
 
-    function mve(x, y) {
-        const p = document.getElementById('player');
-        let nl = p.offsetLeft + x; let nt = p.offsetTop + y;
-        if(nl >= 0 && nl < 350 && nt >= 0 && nt < 350) { p.style.left = nl+'px'; p.style.top = nt+'px'; }
-    }
-
     function finish() {
-        document.getElementById('q-text').innerText = "КОНЕЦ ИГРЫ!";
-        document.getElementById('stage').innerHTML = `<div style="text-align:center; padding-top:100px;"><h2>Ваш результат:</h2><h1 style="font-size:60px; color:var(--main);">${score} / ${qs.length}</h1><button class="btn-play" onclick="location.reload()">В МЕНЮ</button></div>`;
+        document.getElementById('q-text').innerText = "РЕЗУЛЬТАТ";
+        document.getElementById('stage').innerHTML = `<div style="text-align:center;"><h2>Баллы: ${score} / ${qs.length}</h2><button class="btn-play" onclick="location.reload()">В МЕНЮ</button></div>`;
         document.getElementById('controls').innerHTML = "";
     }
 
