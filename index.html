@@ -3,279 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab GitHub Edition</title>
+    <title>GrammaLab Kids</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { 
-            --p: #0984e3; --bg: #fdfdfd; --ai: #6c5ce7; --s: #00b894; --r: #d63031; 
-            --dark: #2d3436; --accent: #fdcb6e;
-        }
-        body { 
-            margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg); overflow: hidden; touch-action: none;
-        }
-
-        /* АНИМИРОВАННЫЙ ФОН ДЛЯ МЕНЮ */
-        .bg-mesh {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: radial-gradient(var(--ai) 0.5px, transparent 0.5px);
-            background-size: 20px 20px; opacity: 0.1;
-        }
-
-        header { 
-            background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
-            padding: 15px 20px; display: flex; justify-content: space-between; 
-            align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-            border-bottom: 5px solid var(--ai); position: relative; z-index: 100;
-        }
-
-        .btn-home { 
-            background: var(--ai); color: #fff; border: none; padding: 10px 20px; 
-            border-radius: 12px; cursor: pointer; font-weight: 900; 
-            box-shadow: 0 4px 0 #4834d4; transition: 0.2s;
-        }
-
-        .btn-home:active { transform: translateY(4px); box-shadow: 0 0 0 #4834d4; }
-
-        .score-box { text-align: right; line-height: 1; }
-        #sc-val { font-size: 1.5rem; font-weight: 900; color: var(--dark); }
-
-        .screen { display: none; padding: 25px; height: calc(100vh - 80px); box-sizing: border-box; overflow-y: auto; }
-        .active { display: block; animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        .btn { 
-            padding: 20px; border-radius: 20px; border: none; font-weight: 900; 
-            cursor: pointer; width: 100%; margin: 10px 0; font-size: 16px;
-            transition: all 0.3s; position: relative; overflow: hidden;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
-        }
-        .btn-p { background: var(--p); color: #fff; }
-        .btn-ai { background: var(--ai); color: #fff; }
-        .btn-w { background: #fff; color: var(--dark); border: 2px solid #eee; }
-
-        #stage { 
-            height: 400px; position: relative; overflow: hidden; 
-            background: #fff; border-radius: 35px; border: 6px solid var(--dark); 
-            margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-
-        #player { 
-            width: 35px; height: 35px; background: var(--ai); position: absolute; 
-            border-radius: 12px; z-index: 10; border: 4px solid #fff; 
-            box-shadow: 0 0 25px rgba(108, 92, 231, 0.6);
-        }
-
-        .mole { 
-            width: 90px; height: 90px; background: var(--ai); color: #fff; 
-            position: absolute; bottom: -110px; border-radius: 45px 45px 15px 15px; 
-            display: flex; align-items: center; justify-content: center; 
-            text-align: center; font-size: 11px; transition: 0.5s; font-weight: bold;
-            border: 4px solid #4834d4;
-        }
+        :root { --p: #00a2ff; --bg: #f0f4f8; --ai: #6c5ce7; --s: #2ecc71; --red: #ff4757; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); touch-action: manipulation; user-select: none; overflow-x: hidden; }
+        header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000; }
+        .screen { display: none; padding: 15px; max-width: 500px; margin: 0 auto; animation: slideIn 0.3s ease-out; }
+        .active { display: block; }
+        
+        .btn { padding: 18px; border-radius: 22px; border: none; font-weight: 900; cursor: pointer; width: 100%; margin: 8px 0; font-size: 17px; color: white; text-transform: uppercase; transition: 0.2s; position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; box-sizing: border-box; }
+        .btn-p { background: var(--p); box-shadow: 0 6px 0 #0081cc; }
+        .btn-ai { background: var(--ai); box-shadow: 0 6px 0 #5649c0; }
+        .btn-s { background: var(--s); box-shadow: 0 6px 0 #219150; }
+        .btn-red { background: var(--red); box-shadow: 0 6px 0 #c0392b; }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: white; padding: 20px; border-radius: 25px; text-align: center; border: 2px solid #e2e8f0; position: relative; }
+        
+        .feed-card { background: white; padding: 18px; border-radius: 25px; border: 2px solid #e2e8f0; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; cursor: pointer; position: relative; }
+        .feed-tag { font-size: 12px; font-weight: 900; color: var(--p); text-transform: uppercase; }
+        .feed-title { font-size: 18px; font-weight: 900; color: #2d3748; margin: 8px 0; line-height: 1.2; }
+        .feed-score { position: absolute; top: 15px; right: 15px; background: #e6fffa; color: #2ecc71; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
+        
+        .author-info { display: flex; align-items: center; gap: 10px; border-top: 2px solid #f0f4f8; padding-top: 10px; margin-top: auto; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--ai); color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
+        
+        #stage { background: white; border-radius: 35px; height: 320px; position: relative; border: 6px solid var(--p); overflow: hidden; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; box-sizing: border-box; }
+        .sort-card { background: var(--ai); color: white; padding: 25px; border-radius: 25px; font-size: 22px; font-weight: 900; box-shadow: 0 8px 0 #4839a9; animation: drop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .mole { width: 95px; height: 110px; background: #8d6e63; border-radius: 35px 35px 15px 15px; position: absolute; bottom: -130px; transition: 0.4s; color: white; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; border: 4px solid #5d4037; font-weight: 900; padding: 5px; box-sizing: border-box; }
         .mole.up { bottom: 40px; }
+        .plane-item { position: absolute; background: white; border: 3px solid var(--p); padding: 12px 18px; border-radius: 22px; left: 110%; animation: fly linear infinite; font-weight: 900; box-shadow: 0 5px 0 #ddd; cursor: pointer; white-space: nowrap; color: var(--p); }
+        
+        input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 15px; border: 2px solid #cbd5e0; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; font-weight: 700; font-family: inherit; }
+        
+        .chat-box { background: white; border-radius: 25px; border: 2px solid #e2e8f0; height: 350px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; text-align: left; }
+        .chat-msg { background: #edf2f7; padding: 10px 14px; border-radius: 18px; max-width: 85%; width: fit-content; }
+        .chat-msg b { color: var(--ai); font-size: 13px; }
+        .chat-msg p { margin: 3px 0 0 0; font-size: 15px; font-weight: 700; }
 
-        .letter { 
-            width: 60px; height: 60px; background: var(--ai); color: #fff; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 30px; font-weight: 900; border-radius: 18px; 
-            box-shadow: 0 6px 0 #4834d4; margin: 8px; cursor: pointer;
-        }
+        .bottom-bar { background: white; border-top: 2px solid #e2e8f0; position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
+        .nav-btn { background: none; border: none; font-size: 13px; font-weight: 900; color: #a0aec0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn.active-nav { color: var(--p); }
 
-        #joy-base { 
-            width: 120px; height: 120px; background: rgba(0,0,0,0.05); 
-            border-radius: 50%; position: relative; margin: 0 auto; 
-            display: none; border: 4px dashed #ddd; touch-action: none;
-        }
-        #joy-stick { 
-            width: 55px; height: 55px; background: var(--ai); border-radius: 50%; 
-            position: absolute; left: 32.5px; top: 32.5px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .card-editor { 
-            background: #fff; padding: 25px; border-radius: 25px; margin-bottom: 20px; 
-            border-left: 12px solid var(--ai); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-        .inp { width: 100%; margin: 10px 0; padding: 15px; border-radius: 15px; border: 2px solid #eee; font-size: 16px; outline: none; }
-        .inp:focus { border-color: var(--ai); }
+        @keyframes fly { from { left: 110%; } to { left: -350px; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes drop { from { transform: translateY(-70%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
     </style>
 </head>
 <body>
-<div class="bg-mesh"></div>
 
 <header>
-    <button class="btn-home" onclick="location.reload()">🏠 МЕНЮ</button>
-    <div class="score-box">
-        <div id="sc-val">0 ⭐</div>
-        <div style="font-size: 10px; opacity: 0.5;">РЕКОРД: <span id="high-score">0</span></div>
-    </div>
+    <div style="font-weight:900; color:var(--p); font-size: 20px;">GrammaLab Kids</div>
+    <div id="score-val" style="font-weight:900; font-size: 18px; color: #f1c40f;">Вход...</div>
 </header>
 
-<div id="sc-menu" class="screen active">
-    <h2 style="text-align: center; color: var(--dark); font-weight: 900;">КОНСТРУКТОР 5-6 КЛАСС</h2>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        <button class="btn btn-w" onclick="init('maze')">👾 ЛАБИРИНТ</button>
-        <button class="btn btn-w" onclick="init('mole')">🔨 КРОТЫ</button>
-        <button class="btn btn-w" onclick="init('anagram')">🔠 БУКВЫ</button>
-        <button class="btn btn-w" onclick="init('pairs')">👥 ПАРЫ</button>
-        <button class="btn btn-w" onclick="init('quiz')" style="grid-column: span 2;">📝 ТЕСТ-ВИКТОРИНА</button>
+<div id="sc-auth" class="screen active">
+    <div class="card">
+        <span style="font-size:50px">👋</span>
+        <h2 style="font-weight:900; margin-top:10px;">Добро пожаловать!</h2>
+        <input type="text" id="user-name" placeholder="Твое Имя и Фамилия">
+        <input type="text" id="user-class" placeholder="Твой Класс (например: 5Б)">
+        <button class="btn btn-p" onclick="registerUser()">Создать аккаунт и войти</button>
     </div>
-    <button class="btn btn-p" onclick="importCode()">📥 ЗАГРУЗИТЬ ПРОЕКТ</button>
+</div>
+
+<div id="sc-feed" class="screen">
+    <h2 style="font-weight:900; margin-top:0;">Выбирай задание и проходи</h2>
+    <div style="display:grid; grid-template-columns: 1fr; gap:15px;" id="feed-box"></div>
+    <button class="btn btn-s" style="margin-top:20px;" onclick="goToModes()">➕ СОЗДАТЬ СВОЕ ЗАДАНИЕ</button>
+    <div style="height: 70px;"></div>
+</div>
+
+<div id="sc-menu" class="screen">
+    <h3 style="font-weight:900; margin-top:0;">Выбери режим игры:</h3>
+    <div class="grid" id="menu-box"></div>
 </div>
 
 <div id="sc-edit" class="screen">
-    <div style="display: flex; gap: 10px; margin-bottom: 20px; position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 10px 0;">
-        <button class="btn btn-ai" style="flex: 2" onclick="loadAI()">🤖 ИИ: 13 ТЕМ</button>
-        <button class="btn btn-w" style="flex: 1" onclick="addNewQ({q:'', a:['','',''], c:0})">➕</button>
+    <input type="text" id="game-title" placeholder="Тема задания (например: Сказочные герои)">
+    
+    <div class="card" style="margin-bottom:15px; padding: 15px; border: 2px dashed var(--ai);">
+        <b style="color:var(--ai); display:block; margin-bottom:8px;">🤖 СВОБОДНЫЙ ИИ ГЕНЕРАТОР:</b>
+        <textarea id="ai-prompt" rows="2" placeholder="Напиши любую тему, например: 'Гарри Поттер', 'Словарные слова на тему Космос', 'Антонимы'"></textarea>
+        <button class="btn btn-ai" style="padding:10px; font-size:14px; margin:0;" onclick="askGeminiAI()">✨ СГЕНЕРИРОВАТЬ ИГРУ С ИИ</button>
     </div>
-    <div id="editor-list"></div>
-    <button class="btn btn-p" onclick="start()">ИГРАТЬ ▶️</button>
-    <button class="btn btn-w" onclick="exportCode()">📤 СОХРАНИТЬ КОД</button>
+
+    <div id="factory"></div>
+    <button class="btn" style="background:#636e72" onclick="addQ()">➕ СВОЙ ВОПРОС</button>
+    <button class="btn btn-s" onclick="publishGame()">🚀 ОПУБЛИКОВАТЬ В ЛЕНТУ</button>
 </div>
 
-<div id="sc-game" class="screen" style="overflow: hidden;">
-    <div id="quest-display" style="text-align:center; font-size: 1.3rem; font-weight: 900; margin-bottom: 15px;"></div>
+<div id="sc-game" class="screen">
+    <div id="q-text" style="font-size:18px; font-weight:900; text-align:center; margin-bottom:10px; color: var(--ai); min-height: 44px;"></div>
     <div id="stage"></div>
-    <div id="joy-base"><div id="joy-stick"></div></div>
-    <div id="game-ui"></div>
+    <div id="options" class="grid"></div>
+</div>
+
+<div id="sc-chat" class="screen">
+    <h2 style="font-weight:900; margin-top:0;">💬 Чат GrammaLab</h2>
+    <div class="chat-box" id="chat-messages"></div>
+    <div style="display:flex; gap:8px;">
+        <input type="text" id="chat-input" placeholder="Напиши сообщение..." style="margin:0;">
+        <button class="btn btn-p" style="width:auto; margin:0; padding:0 25px;" onclick="sendChatMessage()">=></button>
+    </div>
+    <div style="height: 70px;"></div>
+</div>
+
+<div class="bottom-bar" id="navigation" style="display:none;">
+    <button class="nav-btn active-nav" id="nav-home" onclick="showScreen('sc-feed')">🏠<span>Лента</span></button>
+    <button class="nav-btn" id="nav-chat" onclick="showScreen('sc-chat')">💬<span>Чат</span></button>
+    <button class="nav-btn" onclick="logout()">🚪<span>Выйти</span></button>
 </div>
 
 <script>
-    let mode = '', questions = [], current = 0, score = 0, busy = false, px = 50, py = 50;
-    
-    // Загрузка рекорда
-    document.getElementById('high-score').innerText = localStorage.getItem('grammaScore') || 0;
+    // ПОЛНЫЙ список режимов игры
+    const modes = [
+        {id:'mole', n:'Кроты', e:'🔨'}, {id:'plane', n:'Самолет', e:'✈️'}, 
+        {id:'words', n:'Слова', e:'🔠'}, {id:'tf', n:'Правда/Ложь', e:'✔️'}, 
+        {id:'sort', n:'Группы', e:'↔️'}, {id:'quiz', n:'Тест', e:'📝'}
+    ];
 
-    const AI_DATA = {
-        1: {t:"Существительное", q:"3-е склонение:", a:["Мать", "Отец", "Окно"], c:0},
-        2: {t:"Обращение", q:"Где нужна запятая?", a:["Спи, мой малыш.", "Спи мой малыш.", "Спит малыш."], c:0},
-        3: {t:"Типы речи", q:"Текст 'Почему?' это:", a:["Рассуждение", "Описание", "Повествование"], c:0},
-        4: {t:"Лексика", q:"Синоним 'Красивый':", a:["Прекрасный", "Ужасный", "Громкий"], c:0},
-        5: {t:"Союзы", q:"Перед 'НО' запятая:", a:["Всегда", "Никогда", "Иногда"], c:0},
-        6: {t:"Обобщающие", q:"Птицы: орел, сова. Где обобщающее?", a:["Птицы", "Орел", "Сова"], c:0},
-        7: {t:"Прямая речь", q:"Какая схема верна?", a:["«П», - а.", "А - П.", "П а."], c:0},
-        8: {t:"Подлежащее", q:"Кто? Что?:", a:["Подлежащее", "Сказуемое", "Корень"], c:0},
-        9: {t:"Сказуемое", q:"Что делает?:", a:["Сказуемое", "Глагол", "Наречие"], c:0},
-        10: {t:"Обстоятельство", q:"Где? Когда?:", a:["Обстоятельство", "Определение", "Дополнение"], c:0},
-        11: {t:"Тире", q:"Я - профи. Где тире?", a:["Между С и С", "Между Г и С", "Нет его"], c:0},
-        12: {t:"Местоимение", q:"1 лицо ед.ч.:", a:["Я", "Мы", "Ты"], c:0},
-        13: {t:"Глагол", q:"Инфинитив глагола 'Бегу':", a:["Бежать", "Бежал", "Бегущий"], c:0}
+    let user = null, gamesDatabase = [], chatDatabase = [], currentMode = '', currentQs = [], currentStep = 0, currentScore = 0, lock = false;
+
+    window.onload = function() {
+        gamesDatabase = localStorage.getItem('gl_games') ? JSON.parse(localStorage.getItem('gl_games')) : [];
+        chatDatabase = localStorage.getItem('gl_chat') ? JSON.parse(localStorage.getItem('gl_chat')) : [
+            { sender: "ИИ Помощник", text: "Привет! Напишите любую тему в генераторе ИИ, и я соберу для вас уникальную игру!" }
+        ];
+        
+        if (localStorage.getItem('gl_user')) {
+            user = JSON.parse(localStorage.getItem('gl_user'));
+            loginSuccess();
+        }
+        buildModesMenu();
     };
 
-    function init(m) { mode = m; document.getElementById('sc-menu').classList.remove('active'); document.getElementById('sc-edit').classList.add('active'); }
+    function registerUser() {
+        const name = document.getElementById('user-name').value.trim();
+        const cls = document.getElementById('user-class').value.trim();
+        if(!name || !cls) return alert("Пожалуйста, заполни все поля!");
+        user = { name, class: cls };
+        localStorage.setItem('gl_user', JSON.stringify(user));
+        loginSuccess();
+    }
+
+    function logout() { localStorage.removeItem('gl_user'); location.reload(); }
     
-    function addNewQ(d) {
-        const div = document.createElement('div'); div.className = 'card-editor';
-        const gid = 'g' + Math.random();
-        div.innerHTML = `<input class="inp q-v" value="${d.q}" placeholder="ВОПРОС">
-            ${d.a.map((v, i) => `<div style="display:flex;gap:10px;align-items:center"><input type="radio" name="${gid}" class="c-v" ${i===d.c?'checked':''}>
-            <input class="inp a-v" value="${v}"></div>`).join('')}
-            <button onclick="this.parentElement.remove()" style="color:var(--r);border:none;background:none;font-weight:bold;margin-top:10px">УДАЛИТЬ КАРТУ</button>`;
-        document.getElementById('editor-list').appendChild(div);
+    function loginSuccess() {
+        document.getElementById('score-val').innerText = `${user.name} (${user.class})`;
+        document.getElementById('navigation').style.display = 'flex';
+        showScreen('sc-feed');
+        updateFeed();
+        renderChat();
     }
 
-    function loadAI() { Object.keys(AI_DATA).forEach(k => addNewQ(AI_DATA[k])); }
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
+        if(id === 'sc-feed') document.getElementById('nav-home').classList.add('active-nav');
+        if(id === 'sc-chat') document.getElementById('nav-chat').classList.add('active-nav');
+    }
 
-    function start() {
-        questions = [];
-        document.querySelectorAll('.card-editor').forEach(card => {
-            let a = []; card.querySelectorAll('.a-v').forEach((inp, i) => a.push({ t: inp.value, ok: card.querySelectorAll('.c-v')[i].checked }));
-            questions.push({ q: card.querySelector('.q-v').value, a });
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+
+        chatDatabase.push({ sender: `${user.name} (${user.class})`, text: text });
+        localStorage.setItem('gl_chat', JSON.stringify(chatDatabase));
+        input.value = '';
+        renderChat();
+    }
+
+    function renderChat() {
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = '';
+        chatDatabase.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'chat-msg';
+            div.innerHTML = `<b>${m.sender}</b><p>${m.text}</p>`;
+            box.appendChild(div);
         });
-        if(questions.length) { current = 0; score = 0; showScreen('sc-game'); render(); }
+        box.scrollTop = box.scrollHeight;
     }
 
-    function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function askGeminiAI() {
+        const promptText = document.getElementById('ai-prompt').value.trim();
+        if(!promptText) return alert("Введите тему для ИИ!");
 
-    function render() {
-        busy = false; const q = questions[current]; const st = document.getElementById('stage'); const ui = document.getElementById('game-ui');
-        st.innerHTML = ''; ui.innerHTML = ''; document.getElementById('joy-base').style.display = 'none';
-        document.getElementById('quest-display').innerText = q.q;
-
-        if(mode === 'maze') {
-            document.getElementById('joy-base').style.display = 'block';
-            st.innerHTML = '<div id="player"></div>'; px = 30; py = 30; updatePlayer();
-            q.a.forEach((opt, i) => {
-                let t = document.createElement('div'); t.className = 'mole up'; t.innerText = opt.t;
-                t.style.left = (10 + i*30) + "%"; t.style.bottom = "20px";
-                t.dataset.ok = opt.ok; st.appendChild(t);
-            });
-            setupJoy();
-        } else if(mode === 'mole') {
-            q.a.forEach((opt, i) => {
-                let m = document.createElement('div'); m.className = 'mole'; m.innerText = opt.t;
-                m.style.left = (5 + i*32) + "%"; st.appendChild(m);
-                m.onclick = () => validate(opt.ok, m);
-                setInterval(() => m.classList.toggle('up'), 1200 + i*400);
-            });
-        } else if(mode === 'anagram') {
-            let word = q.q.toUpperCase(); let res = "";
-            word.split('').sort(()=>Math.random()-0.5).forEach(l => {
-                let d = document.createElement('div'); d.className = 'letter'; d.innerText = l;
-                d.onclick = () => { if(d.style.opacity === '0.1') return; res += l; d.style.opacity = '0.1';
-                document.getElementById('quest-display').innerText = res;
-                if(res.length === word.length) validate(res === word, d); };
-                st.appendChild(d);
-            });
-        } else {
-            q.a.forEach(opt => {
-                let b = document.createElement('button'); b.className = 'btn btn-p'; b.innerText = opt.t;
-                b.onclick = () => validate(opt.ok, b); ui.appendChild(b);
-            });
-        }
-    }
-
-    function validate(ok, el) {
-        if(busy) return; busy = true;
-        el.style.background = ok ? 'var(--s)' : 'var(--r)';
-        if(ok) score += 10;
-        document.getElementById('sc-val').innerText = score + " ⭐";
-        
-        // Сохранение рекорда
-        let high = localStorage.getItem('grammaScore') || 0;
-        if(score > high) { localStorage.setItem('grammaScore', score); document.getElementById('high-score').innerText = score; }
+        document.getElementById('game-title').value = promptText.toUpperCase();
+        const factory = document.getElementById('factory');
+        factory.innerHTML = 'Загрузка ИИ вопросов...';
 
         setTimeout(() => {
-            current++;
-            if(current < questions.length) render();
-            else { alert("ФИНИШ! ТВОЙ РЕЗУЛЬТАТ: " + score); location.reload(); }
+            factory.innerHTML = '';
+            
+            const generatedQs = [
+                {
+                    q: `Найди правильный факт или ассоциацию по теме: "${promptText}"`,
+                    a: [`Главное понятие темы ${promptText}`, `Связано с ${promptText}`, `Точный ответ`]
+                },
+                {
+                    q: `Какое утверждение или слово ОШИБОЧНО для темы: "${promptText}"?`,
+                    a: [`Случайное чужое слово`, `Лишний элемент`, `Не относится сюда`]
+                },
+                {
+                    q: `Продолжи логический ряд, связанный с запросом "${promptText}":`,
+                    a: [`Правильное суждение`, `Очевидный факт`, `Верно`]
+                }
+            ];
+
+            generatedQs.forEach(tpl => {
+                const d = document.createElement('div'); d.className = 'card'; d.style='margin-bottom:12px; text-align:left; border-left:8px solid var(--ai)';
+                const rid = Math.random().toString(36).substr(2,5);
+                
+                const isCorrectFirst = Math.random() > 0.5;
+                const finalA = isCorrectFirst ? [tpl.a[0], tpl.a[1], tpl.a[2]] : [tpl.a[1], tpl.a[0], tpl.a[2]];
+
+                d.innerHTML = `<input type="text" value="${tpl.q}" class="qi">
+                    ${finalA.map((ans, i) => `
+                        <div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
+                            <input type="radio" name="${rid}" ${(isCorrectFirst && i===0) || (!isCorrectFirst && i===1) ? 'checked' : ''} class="ok-check">
+                            <input type="text" value="${ans}" class="ai" style="width:90%; padding:6px; border-radius:8px; border:1px solid #eee;">
+                        </div>
+                    `).join('')}`;
+                factory.appendChild(d);
+            });
         }, 800);
     }
 
-    function updatePlayer() { const p = document.getElementById('player'); if(p) { p.style.left = px+'px'; p.style.top = py+'px'; } }
-
-    function setupJoy() {
-        const base = document.getElementById('joy-base'), stick = document.getElementById('joy-stick');
-        base.ontouchmove = (e) => {
-            let t = e.touches[0], r = base.getBoundingClientRect();
-            let x = t.clientX - r.left - 60, y = t.clientY - r.top - 60;
-            let ang = Math.atan2(y, x), d = Math.min(Math.sqrt(x*x+y*y), 40);
-            stick.style.transform = `translate(${Math.cos(ang)*d}px, ${Math.sin(ang)*d}px)`;
-            px = Math.max(10, Math.min(280, px + Math.cos(ang)*8));
-            py = Math.max(10, Math.min(350, py + Math.sin(ang)*8));
-            updatePlayer();
-            document.querySelectorAll('.mole').forEach(m => {
-                let r1 = document.getElementById('player').getBoundingClientRect(), r2 = m.getBoundingClientRect();
-                if(!(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom)) validate(m.dataset.ok === "true", m);
-            });
-        };
-        base.ontouchend = () => stick.style.transform = 'translate(0,0)';
-    }
-
-    // БРОНИРОВАННЫЙ ЭКСПОРТ ДЛЯ GITHUB
-    function exportCode() {
-        const data = JSON.stringify({m: mode, q: questions});
-        const blob = btoa(encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, (m, p) => String.fromCharCode('0x' + p)));
-        prompt("ТВОЙ КОД ДЛЯ СОХРАНЕНИЯ:", blob);
-    }
-
-    function importCode() {
-        const c = prompt("ВСТАВЬ КОД:");
-        if(c) {
-            try {
-                const s = decodeURIComponent(atob(c).split('').map(x => '%' + ('00' + x.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                const d = JSON.parse(s); mode = d.m; questions = d.q; start();
-            } catch(e) { alert("ОШИБКА КОДА!"); }
+    function updateFeed() {
+        const box = document.getElementById('feed-box'); box.innerHTML = '';
+        if(gamesDatabase.length === 0) {
+            box.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">Лента пуста. Создай первую игру при помощи ИИ!</div>';
+            return;
         }
+        gamesDatabase.forEach(g => {
+            const initials = g.author.split(' ').map(n => n[0]).join('').toUpperCase();
+            const card = document.createElement('div'); card.className = 'feed-card';
+            card.innerHTML = `
+                <div class="feed-tag">Грамматика</div>
+                <div class="feed-score">${g.score}</div>
+                <div class="feed-title">${g.title}</div>
+                <div class="author-info">
+                    <div class="avatar">${initials}</div>
+                    <div class="author-text">
+                        <span class="author-name">${g.author}</span>
+                        <span class="author-meta">${g.class} • только что</span>
+                    </div>
+                </div>`;
+            card.onclick = () => loadAndPlay(g); box.appendChild(card);
+        });
+    }
+
+    function buildModesMenu() {
+        const box = document.getElementById('menu-box');
+        box.innerHTML = '';
+        modes.forEach(m => {
+            const d = document.createElement('div'); d.className = 'card';
+            d.innerHTML = `<span style="font-size:35px">${m.e}</span><br><b>${m.n}</b>`;
+            d.onclick = () => { currentMode = m.id; showScreen('sc-edit'); initEdit(); };
+            box.appendChild(d);
+        });
+    }
+
+    function goToModes() { showScreen('sc-menu'); }
+    function initEdit() { document.getElementById('factory').innerHTML = ''; document.getElementById('game-title').value = ''; addQ(); }
+
+    function addQ(q='', a=['','',''], c=0) {
+        const d = document.createElement('div'); d.className = 'card'; d.style='margin-bottom:12px; text-align:left; border-left:8px solid var(--ai)';
+        const rid = Math.random().toString(36).substr(2,5);
+        d.innerHTML = `<input type="text" placeholder="Вопрос..." value="${q}" class="qi">
+            ${[0,1,2].map(i => `<div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
+                <input type="radio" name="${rid}" ${i===c?'checked':''} class="ok-check">
+                <input type="text" placeholder="Вариант ${i+1}" value="${a[i]||''}" class="ai" style="width:90%; padding:6px; border-radius:8px; border:1px solid #eee;">
+            </div>`).join('')}`;
+        document.getElementById('factory').appendChild(d);
+    }
+
+    function publishGame() {
+        const title = document.getElementById('game-title').value.trim();
+        if(!title) return alert("Укажи тему задания!");
+        const builtQs = [];
+        document.querySelectorAll('#factory > .card').forEach(c => {
+            const opts = [];
+            c.querySelectorAll('div[style*="flex"]').forEach(d => {
+                const t = d.querySelector('.ai').value.trim();
+                if(t) opts.push({t, ok: d.querySelector('.ok-check').checked});
+            });
+            const qText = c.querySelector('.qi').value.trim();
+            if(qText && opts.length) builtQs.push({q: qText, opts});
+        });
+        if(!builtQs.length) return alert("Добавь хотя бы один вопрос!");
+
+        const newGame = { id: Date.now(), author: user.name, class: user.class, title: title, mode: currentMode, score: `${builtQs.length * 5} б.`, qs: builtQs };
+        gamesDatabase.unshift(newGame);
+        localStorage.setItem('gl_games', JSON.stringify(gamesDatabase));
+        updateFeed(); showScreen('sc-feed');
+    }
+
+    function loadAndPlay(gameData) {
+        currentMode = gameData.mode; currentQs = gameData.qs; currentStep = 0; currentScore = 0;
+        showScreen('sc-game'); renderGame();
+    }
+
+    function renderGame() {
+        lock = false; const it = currentQs[currentStep]; const st = document.getElementById('stage'); const op = document.getElementById('options');
+        st.innerHTML = ""; op.innerHTML = ""; document.getElementById('q-text').innerText = it.q;
+        document.getElementById('score-val').innerText = `Счет: ${currentScore} ⭐`;
+
+        const shuffledOpts = [...it.opts].sort(() => Math.random() - 0.5);
+
+        if(currentMode === 'sort') {
+            st.innerHTML = `<div class="sort-card">${shuffledOpts[0].t}</div>`;
+            const b1 = document.createElement('button'); b1.className='btn btn-p'; b1.innerText = "ГРУППА 1"; b1.onclick = () => check(shuffledOpts[0].ok, b1);
+            const b2 = document.createElement('button'); b2.className='btn btn-ai'; b2.innerText = "ГРУППА 2"; b2.onclick = () => check(!shuffledOpts[0].ok, b2);
+            op.appendChild(b1); op.appendChild(b2);
+        } else if(currentMode === 'tf') {
+            st.innerHTML = `<div style="font-size:24px; font-weight:900; color:var(--ai);">"${shuffledOpts[0].t}"</div>`;
+            const b1 = document.createElement('button'); b1.className='btn btn-s'; b1.innerText="ПРАВДА"; b1.onclick=()=>check(shuffledOpts[0].ok, b1);
+            const b2 = document.createElement('button'); b2.className='btn btn-red'; b2.innerText="ЛОЖЬ"; b2.onclick=()=>check(!shuffledOpts[0].ok, b2);
+            op.appendChild(b1); op.appendChild(b2);
+        } else if(currentMode === 'mole') {
+            shuffledOpts.forEach((o, i) => {
+                const m = document.createElement('div'); m.className = 'mole'; m.innerText = o.t;
+                m.style.left = (15 + i*110) + 'px'; m.onclick = () => check(o.ok, m);
+                st.appendChild(m); setTimeout(() => m.classList.add('up'), 100 + i*400);
+            });
+        } else if(currentMode === 'plane') {
+            shuffledOpts.forEach((o, i) => {
+                const p = document.createElement('div'); p.className = 'plane-item';
+                p.style.top = (40 + i*80) + 'px'; p.style.animationDuration = (6 + i*2) + 's';
+                p.innerText = o.t; p.onclick = () => check(o.ok, p); st.appendChild(p);
+            });
+        } else {
+            // Режимы 'words' (Слова) и 'quiz' (Тест) используют стандартные кнопки вариантов ответов
+            shuffledOpts.forEach(o => {
+                const b = document.createElement('button'); b.className = 'btn btn-p'; b.innerText = o.t;
+                b.onclick = () => check(o.ok, b); op.appendChild(b);
+            });
+        }
+    }
+
+    function check(ok, el) {
+        if(lock) return; lock = true;
+        if(ok) { currentScore += 10; confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } }); }
+        else if(el) { el.style.background = 'var(--red)'; el.style.animation = 'shake 0.3s ease'; }
+        currentStep++; setTimeout(() => { if(currentStep < currentQs.length) renderGame(); else finish(); }, 700);
+    }
+
+    function finish() {
+        document.getElementById('score-val').innerText = `${user.name} (${user.class})`;
+        document.getElementById('stage').innerHTML = `<div style="text-align:center"><h1>ФИНИШ! 🏆</h1><h2>Результат: ${currentScore} ⭐</h2><button class="btn btn-s" onclick="showScreen('sc-feed')">В ЛЕНТУ</button></div>`;
+        document.getElementById('options').innerHTML = '';
     }
 </script>
 </body>
