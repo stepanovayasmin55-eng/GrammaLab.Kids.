@@ -2,364 +2,619 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GrammaLab Kids</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Gramma Quest | 6 в 1</title>
     <style>
-        :root { --p: #00a2ff; --bg: #f0f4f8; --ai: #6c5ce7; --s: #2ecc71; --red: #ff4757; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); touch-action: manipulation; user-select: none; overflow-x: hidden; }
-        header { background: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000; }
-        .screen { display: none; padding: 15px; max-width: 500px; margin: 0 auto; animation: slideIn 0.3s ease-out; }
+        :root {
+            --bg-dark: #0b1329;
+            --panel-dark: #1c2541;
+            --primary: #00a2ff;
+            --secondary: #6c5ce7;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body {
+            margin: 0; font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-dark); color: var(--text-light);
+            padding-bottom: 70px; -webkit-tap-highlight-color: transparent;
+        }
+        header {
+            background: var(--panel-dark); padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #2a3454; position: sticky; top: 0; z-index: 100;
+        }
+        .user-pill {
+            background: rgba(255,255,255,0.05); padding: 6px 12px;
+            border-radius: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;
+        }
+        .avatar {
+            width: 32px; height: 32px; background: linear-gradient(135deg, #ff007f, #7928ca);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px;
+        }
+        .container { max-width: 550px; margin: 0 auto; padding: 15px; }
+        .screen { display: none; animation: fadeIn 0.3s ease; }
         .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .btn { padding: 18px; border-radius: 22px; border: none; font-weight: 900; cursor: pointer; width: 100%; margin: 8px 0; font-size: 17px; color: white; text-transform: uppercase; transition: 0.2s; position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; box-sizing: border-box; }
-        .btn-p { background: var(--p); box-shadow: 0 6px 0 #0081cc; }
-        .btn-ai { background: var(--ai); box-shadow: 0 6px 0 #5649c0; }
-        .btn-s { background: var(--s); box-shadow: 0 6px 0 #219150; }
-        .btn-red { background: var(--red); box-shadow: 0 6px 0 #c0392b; }
-        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .card {
+            background: var(--panel-dark); border-radius: 16px; padding: 16px;
+            margin-bottom: 15px; border: 1px solid #2a3454;
+        }
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%;
+            margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            text-transform: uppercase; font-size: 14px; transition: 0.2s;
+        }
+        .btn-sec { background: var(--secondary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-outline { background: transparent; border: 1px solid #4a5578; color: var(--text-light); }
+        .btn:active { transform: scale(0.98); }
         
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: white; padding: 20px; border-radius: 25px; text-align: center; border: 2px solid #e2e8f0; position: relative; }
+        input, select, textarea {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.2);
+            border: 1px solid #3a4464; border-radius: 10px; color: white;
+            box-sizing: border-box; margin-top: 6px; margin-bottom: 12px; font-size: 14px;
+        }
         
-        .feed-card { background: white; padding: 18px; border-radius: 25px; border: 2px solid #e2e8f0; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; cursor: pointer; position: relative; }
-        .feed-tag { font-size: 12px; font-weight: 900; color: var(--p); text-transform: uppercase; }
-        .feed-title { font-size: 18px; font-weight: 900; color: #2d3748; margin: 8px 0; line-height: 1.2; }
-        .feed-score { position: absolute; top: 15px; right: 15px; background: #e6fffa; color: #2ecc71; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+            background: var(--panel-dark); border-top: 1px solid #2a3454;
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .nav-item { color: var(--text-muted); cursor: pointer; font-size: 12px; text-align: center; font-weight: 600; }
+        .nav-item.active-nav { color: var(--primary); }
         
-        .author-info { display: flex; align-items: center; gap: 10px; border-top: 2px solid #f0f4f8; padding-top: 10px; margin-top: auto; }
-        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--ai); color: white; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
-        
-        #stage { background: white; border-radius: 35px; height: 320px; position: relative; border: 6px solid var(--p); overflow: hidden; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; padding: 20px; text-align: center; box-sizing: border-box; }
-        .sort-card { background: var(--ai); color: white; padding: 25px; border-radius: 25px; font-size: 22px; font-weight: 900; box-shadow: 0 8px 0 #4839a9; animation: drop 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        .mole { width: 95px; height: 110px; background: #8d6e63; border-radius: 35px 35px 15px 15px; position: absolute; bottom: -130px; transition: 0.4s; color: white; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; border: 4px solid #5d4037; font-weight: 900; padding: 5px; box-sizing: border-box; }
-        .mole.up { bottom: 40px; }
-        .plane-item { position: absolute; background: white; border: 3px solid var(--p); padding: 12px 18px; border-radius: 22px; left: 110%; animation: fly linear infinite; font-weight: 900; box-shadow: 0 5px 0 #ddd; cursor: pointer; white-space: nowrap; color: var(--p); }
-        
-        input[type="text"], textarea { width: 100%; padding: 12px; border-radius: 15px; border: 2px solid #cbd5e0; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; font-weight: 700; font-family: inherit; }
-        
-        .chat-box { background: white; border-radius: 25px; border: 2px solid #e2e8f0; height: 350px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; text-align: left; }
-        .chat-msg { background: #edf2f7; padding: 10px 14px; border-radius: 18px; max-width: 85%; width: fit-content; }
-        .chat-msg b { color: var(--ai); font-size: 13px; }
-        .chat-msg p { margin: 3px 0 0 0; font-size: 15px; font-weight: 700; }
-
-        .bottom-bar { background: white; border-top: 2px solid #e2e8f0; position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-btn { background: none; border: none; font-size: 13px; font-weight: 900; color: #a0aec0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-btn.active-nav { color: var(--p); }
-
+        /* Игровые Стили */
+        #stage {
+            height: 250px; background: #fff; border-radius: 20px; margin-bottom: 15px;
+            position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .mole {
+            width: 80px; height: 95px; background: #633112; border-radius: 20px 20px 5px 5px;
+            position: absolute; bottom: -110px; transition: 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold; text-align: center; padding: 4px; box-sizing: border-box;
+        }
+        .mole.up { bottom: 25px; }
+        .plane {
+            position: absolute; background: var(--primary); padding: 10px 16px; border-radius: 12px;
+            left: 110%; animation: fly 4s linear infinite; font-weight: bold; color: white; white-space: nowrap; box-shadow: 0 4px 0 #0077b6;
+        }
         @keyframes fly { from { left: 110%; } to { left: -350px; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes drop { from { transform: translateY(-70%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        
+        .game-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .badge-tag { background: rgba(0,162,255,0.1); color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .badge-count { background: var(--success); color: white; padding: 2px 6px; border-radius: 6px; font-size: 11px; }
+        .reactions { display: flex; gap: 15px; color: var(--text-muted); font-size: 13px; margin-top: 12px; border-top: 1px solid #2a3454; padding-top: 10px; }
+        .reaction-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        
+        .opt-build-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+        .check-correct { width: 24px; height: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight:900; color:var(--p); font-size: 20px;">GrammaLab Kids</div>
-    <div id="score-val" style="font-weight:900; font-size: 18px; color: #f1c40f;">Вход...</div>
+    <div style="font-weight: 900; font-size: 18px;">Gramma Quest</div>
+    <div class="user-pill" onclick="switchTab('profile')">
+        <div class="avatar" id="header-avatar">?</div>
+        <div style="font-size: 13px; font-weight: 600;" id="header-user-name">Гость</div>
+    </div>
 </header>
 
-<div id="sc-auth" class="screen active">
-    <div class="card">
-        <span style="font-size:50px">👋</span>
-        <h2 style="font-weight:900; margin-top:10px;">Добро пожаловать!</h2>
-        <input type="text" id="user-name" placeholder="Твое Имя и Фамилия">
-        <input type="text" id="user-class" placeholder="Твой Класс (например: 5Б)">
-        <button class="btn btn-p" onclick="registerUser()">Создать аккаунт и войти</button>
-    </div>
-</div>
-
-<div id="sc-feed" class="screen">
-    <h2 style="font-weight:900; margin-top:0;">Выбирай задание и проходи</h2>
-    <div style="display:grid; grid-template-columns: 1fr; gap:15px;" id="feed-box"></div>
-    <button class="btn btn-s" style="margin-top:20px;" onclick="goToModes()">➕ СОЗДАТЬ СВОЕ ЗАДАНИЕ</button>
-    <div style="height: 70px;"></div>
-</div>
-
-<div id="sc-menu" class="screen">
-    <h3 style="font-weight:900; margin-top:0;">Выбери режим игры:</h3>
-    <div class="grid" id="menu-box"></div>
-</div>
-
-<div id="sc-edit" class="screen">
-    <input type="text" id="game-title" placeholder="Тема задания (например: Сказочные герои)">
+<div class="container">
     
-    <div class="card" style="margin-bottom:15px; padding: 15px; border: 2px dashed var(--ai);">
-        <b style="color:var(--ai); display:block; margin-bottom:8px;">🤖 СВОБОДНЫЙ ИИ ГЕНЕРАТОР:</b>
-        <textarea id="ai-prompt" rows="2" placeholder="Напиши любую тему, например: 'Гарри Поттер', 'Словарные слова на тему Космос', 'Антонимы'"></textarea>
-        <button class="btn btn-ai" style="padding:10px; font-size:14px; margin:0;" onclick="askGeminiAI()">✨ СГЕНЕРИРОВАТЬ ИГРУ С ИИ</button>
+    <!-- ЭКРАН РЕГИСТРАЦИИ -->
+    <div id="scr-auth" class="screen active">
+        <div class="card">
+            <h3 style="margin-top:0">Вход в систему</h3>
+            <label>Имя</label><input type="text" id="reg-name" placeholder="Никита">
+            <label>Фамилия</label><input type="text" id="reg-surname" placeholder="Шевченко">
+            <label>Класс</label>
+            <select id="reg-class">
+                <option value="5А">5 А</option><option value="5Б">5 Б</option>
+                <option value="5В">5 В</option><option value="5Д" selected>5 Д</option>
+                <option value="6А">6 А</option><option value="7А">7 А</option>
+            </select>
+            <button class="btn" onclick="registerUser()">Войти в профиль</button>
+        </div>
     </div>
 
-    <div id="factory"></div>
-    <button class="btn" style="background:#636e72" onclick="addQ()">➕ СВОЙ ВОПРОС</button>
-    <button class="btn btn-s" onclick="publishGame()">🚀 ОПУБЛИКОВАТЬ В ЛЕНТУ</button>
-</div>
-
-<div id="sc-game" class="screen">
-    <div id="q-text" style="font-size:18px; font-weight:900; text-align:center; margin-bottom:10px; color: var(--ai); min-height: 44px;"></div>
-    <div id="stage"></div>
-    <div id="options" class="grid"></div>
-</div>
-
-<div id="sc-chat" class="screen">
-    <h2 style="font-weight:900; margin-top:0;">💬 Чат GrammaLab</h2>
-    <div class="chat-box" id="chat-messages"></div>
-    <div style="display:flex; gap:8px;">
-        <input type="text" id="chat-input" placeholder="Напиши сообщение..." style="margin:0;">
-        <button class="btn btn-p" style="width:auto; margin:0; padding:0 25px;" onclick="sendChatMessage()">=></button>
+    <!-- ЭКРАН ЛЕНТЫ ИГР -->
+    <div id="scr-feed" class="screen">
+        <input type="text" id="search-task" placeholder="🔍 Найти задание..." oninput="renderFeed()">
+        <div id="feed-list"></div>
     </div>
-    <div style="height: 70px;"></div>
+
+    <!-- ЭКРАН СОЗДАНИЯ ИГРЫ -->
+    <div id="scr-create" class="screen">
+        <div class="card">
+            <h3 style="margin-top:0">Создание нового задания</h3>
+            <label>Название квеста</label>
+            <input type="text" id="setup-title" placeholder="Тест по Грамматике">
+            
+            <label>Выберите игровой режим</label>
+            <select id="setup-mode">
+                <option value="mole">🔨 Охота на Кротов</option>
+                <option value="plane">✈️ Авиа-Грамматика</option>
+                <option value="words">🔠 Мастер Слов (Ввод)</option>
+                <option value="tf">⚖️ Детектор Лжи (Правда/Ложь)</option>
+                <option value="sort">↔️ Сортировщик (Группы)</option>
+                <option value="quiz">🎓 Супер Экзамен (Тест)</option>
+            </select>
+
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <button class="btn btn-sec" style="margin:0" onclick="generateAIQuestions()">🤖 ИИ-Генератор</button>
+                <button class="btn btn-outline" style="margin:0" onclick="openManualEditor()">✍️ Ручной режим</button>
+            </div>
+            
+            <div id="builder-zone" style="display:none; border-top:1px solid #3a4464; padding-top:15px;">
+                <h4>Вопрос № <span id="q-build-num">1</span></h4>
+                <input type="text" id="build-q-text" placeholder="Формулировка вопроса">
+                <div id="build-options-container"></div>
+                <button class="btn btn-outline" style="font-size:12px; padding:6px;" onclick="addOptionField('', false)">+ Добавить ответ</button>
+                <button class="btn btn-success" style="margin-top:15px;" onclick="saveBuiltQuestion()">Сохранить вопрос</button>
+            </div>
+
+            <div id="ready-q-count" style="margin-top:10px; font-size:13px; color:var(--text-muted)">Добавлено вопросов: 0</div>
+            <button class="btn" id="btn-publish-game" onclick="publishGame()" style="display:none; background:var(--success)">🚀 Опубликовать задание</button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ПРОФИЛЯ -->
+    <div id="scr-profile" class="screen">
+        <div class="card" style="display:flex; gap:15px; align-items:center;">
+            <div class="avatar" style="width:65px; height:65px; font-size:24px;" id="prof-avatar">?</div>
+            <div>
+                <span style="color:var(--primary); font-size:12px; font-weight:bold;">Твой профиль</span>
+                <h2 style="margin:2px 0;" id="prof-name">Пользователь</h2>
+                <span style="color:var(--text-muted)" id="prof-class">Класс</span>
+            </div>
+        </div>
+        <h4>Мои созданные игры:</h4>
+        <div id="my-games-list"></div>
+        <button class="btn btn-danger" onclick="logout()">Выйти из аккаунта</button>
+    </div>
+
+    <!-- ЭКРАН ИГРЫ -->
+    <div id="scr-game" class="screen">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+            <button class="btn btn-outline" style="width:auto; margin:0; padding:6px 12px;" onclick="switchTab('feed')">← Назад</button>
+            <div id="game-hud" style="font-weight:bold; color:var(--warning); font-size:18px;">0 ⭐</div>
+        </div>
+        <div class="card" style="text-align:center;">
+            <h3 id="game-q-text" style="margin:0; min-height:50px; color:var(--primary)">Загрузка...</h3>
+        </div>
+        <div id="stage"></div>
+        <div id="game-answers" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+    </div>
+
+    <!-- ЭКРАН ИТОГОВЫХ БАЛЛОВ -->
+    <div id="scr-results" class="screen">
+        <div class="card" style="text-align:center; padding:30px 20px;">
+            <div style="font-size:60px; margin-bottom:10px;">🏆</div>
+            <h2 style="margin:0; color:var(--success)">КВЕСТ ЗАВЕРШЕН!</h2>
+            <p style="color:var(--text-muted)" id="res-game-title">Название игры</p>
+            <hr style="border-color:#2a3454; margin:20px 0;">
+            <div style="font-size:18px; margin-bottom:8px;">Ученик: <b id="res-user-name">Имя</b></div>
+            <div style="font-size:32px; font-weight:900; color:var(--warning);" id="res-total-score">0 баллов</div>
+            <p id="res-feedback-text" style="font-size:14px; opacity:0.8;"></p>
+            <button class="btn btn-success" style="margin-top:20px;" onclick="switchTab('feed')">Вернуться в главное меню</button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН КОММЕНТАРИЕВ -->
+    <div id="scr-comments" class="screen">
+        <button class="btn btn-outline" style="width:auto; margin-bottom:15px;" onclick="switchTab('feed')">← К ленте</button>
+        <div class="card" id="comment-game-info"></div>
+        <h4>Комментарии:</h4>
+        <div id="comments-box" style="margin-bottom:15px;"></div>
+        <div class="card">
+            <textarea id="new-comment-text" placeholder="Оставьте отзыв об этом задании..."></textarea>
+            <button class="btn" onclick="submitComment()">Отправить комментарий</button>
+        </div>
+    </div>
+
 </div>
 
-<div class="bottom-bar" id="navigation" style="display:none;">
-    <button class="nav-btn active-nav" id="nav-home" onclick="showScreen('sc-feed')">🏠<span>Лента</span></button>
-    <button class="nav-btn" id="nav-chat" onclick="showScreen('sc-chat')">💬<span>Чат</span></button>
-    <button class="nav-btn" onclick="logout()">🚪<span>Выйти</span></button>
+<div class="nav-bar" id="bottom-nav" style="display:none;">
+    <div class="nav-item active-nav" id="nav-feed" onclick="switchTab('feed')">🏠<br>Главная</div>
+    <div class="nav-item" id="nav-create" onclick="switchTab('create')">➕<br>Создать игру</div>
+    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">👤<br>Профиль</div>
 </div>
 
 <script>
-    // ПОЛНЫЙ список режимов игры
-    const modes = [
-        {id:'mole', n:'Кроты', e:'🔨'}, {id:'plane', n:'Самолет', e:'✈️'}, 
-        {id:'words', n:'Слова', e:'🔠'}, {id:'tf', n:'Правда/Ложь', e:'✔️'}, 
-        {id:'sort', n:'Группы', e:'↔️'}, {id:'quiz', n:'Тест', e:'📝'}
-    ];
+    let currentUser = JSON.parse(localStorage.getItem('gq_user')) || null;
+    let games = JSON.parse(localStorage.getItem('gq_games')) || [];
 
-    let user = null, gamesDatabase = [], chatDatabase = [], currentMode = '', currentQs = [], currentStep = 0, currentScore = 0, lock = false;
+    let buildQuestions = [];
+    let activeGame = null;
+    let activeGameIndex = 0;
+    let activeScore = 0;
+    let activeIsLocked = false;
+    let activeCommentGameId = null;
+
+    const MODES_NAMES = { mole: "🔨 Кроты", plane: "✈️ Самолет", words: "🔠 Мастер Слов", tf: "⚖️ Правда/Ложь", sort: "↔️ Сортировщик", quiz: "🎓 Экзамен" };
 
     window.onload = function() {
-        gamesDatabase = localStorage.getItem('gl_games') ? JSON.parse(localStorage.getItem('gl_games')) : [];
-        chatDatabase = localStorage.getItem('gl_chat') ? JSON.parse(localStorage.getItem('gl_chat')) : [
-            { sender: "ИИ Помощник", text: "Привет! Напишите любую тему в генераторе ИИ, и я соберу для вас уникальную игру!" }
-        ];
-        
-        if (localStorage.getItem('gl_user')) {
-            user = JSON.parse(localStorage.getItem('gl_user'));
-            loginSuccess();
-        }
-        buildModesMenu();
+        if (currentUser) loginSetup();
+        else switchTab('auth');
     };
 
     function registerUser() {
-        const name = document.getElementById('user-name').value.trim();
-        const cls = document.getElementById('user-class').value.trim();
-        if(!name || !cls) return alert("Пожалуйста, заполни все поля!");
-        user = { name, class: cls };
-        localStorage.setItem('gl_user', JSON.stringify(user));
-        loginSuccess();
+        const name = document.getElementById('reg-name').value.trim();
+        const surname = document.getElementById('reg-surname').value.trim();
+        const cls = document.getElementById('reg-class').value;
+        if(!name || !surname) return alert("Заполните все поля!");
+        
+        currentUser = { name, surname, class: cls };
+        localStorage.setItem('gq_user', JSON.stringify(currentUser));
+        loginSetup();
     }
 
-    function logout() { localStorage.removeItem('gl_user'); location.reload(); }
-    
-    function loginSuccess() {
-        document.getElementById('score-val').innerText = `${user.name} (${user.class})`;
-        document.getElementById('navigation').style.display = 'flex';
-        showScreen('sc-feed');
-        updateFeed();
-        renderChat();
+    function loginSetup() {
+        document.getElementById('bottom-nav').style.display = 'flex';
+        document.getElementById('header-user-name').innerText = `${currentUser.name} ${currentUser.surname}`;
+        const initials = (currentUser.name[0] || '') + (currentUser.surname[0] || '');
+        document.getElementById('header-avatar').innerText = initials.toUpperCase();
+        
+        document.getElementById('prof-name').innerText = `${currentUser.name} ${currentUser.surname}`;
+        document.getElementById('prof-class').innerText = `Класс ${currentUser.class}`;
+        document.getElementById('prof-avatar').innerText = initials.toUpperCase();
+        
+        switchTab('feed');
+        renderFeed();
     }
 
-    function showScreen(id) {
+    function logout() {
+        localStorage.removeItem('gq_user');
+        currentUser = null;
+        document.getElementById('bottom-nav').style.display = 'none';
+        switchTab('auth');
+    }
+
+    function switchTab(target) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-nav'));
-        if(id === 'sc-feed') document.getElementById('nav-home').classList.add('active-nav');
-        if(id === 'sc-chat') document.getElementById('nav-chat').classList.add('active-nav');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+        
+        const screenMap = { 'auth':'scr-auth', 'feed':'scr-feed', 'create':'scr-create', 'profile':'scr-profile', 'game':'scr-game', 'comments':'scr-comments', 'results':'scr-results' };
+        document.getElementById(screenMap[target]).classList.add('active');
+        
+        if(document.getElementById(`nav-${target}`)) document.getElementById(`nav-${target}`).classList.add('active-nav');
+        if(target === 'profile') renderMyGames();
     }
 
-    function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if(!text) return;
-
-        chatDatabase.push({ sender: `${user.name} (${user.class})`, text: text });
-        localStorage.setItem('gl_chat', JSON.stringify(chatDatabase));
-        input.value = '';
-        renderChat();
+    // --- РУЧНОЙ КОНСТРУКТОР С БЕСКОНЕЧНЫМИ ОТВЕТАМИ ---
+    function openManualEditor() {
+        buildQuestions = [];
+        document.getElementById('builder-zone').style.display = 'block';
+        setupQuestionBuilderField();
     }
 
-    function renderChat() {
-        const box = document.getElementById('chat-messages');
-        box.innerHTML = '';
-        chatDatabase.forEach(m => {
-            const div = document.createElement('div');
-            div.className = 'chat-msg';
-            div.innerHTML = `<b>${m.sender}</b><p>${m.text}</p>`;
-            box.appendChild(div);
-        });
-        box.scrollTop = box.scrollHeight;
+    function setupQuestionBuilderField() {
+        document.getElementById('q-build-num').innerText = buildQuestions.length + 1;
+        document.getElementById('build-q-text').value = '';
+        document.getElementById('build-options-container').innerHTML = '';
+        addOptionField('', true);
+        addOptionField('', false);
     }
 
-    function askGeminiAI() {
-        const promptText = document.getElementById('ai-prompt').value.trim();
-        if(!promptText) return alert("Введите тему для ИИ!");
-
-        document.getElementById('game-title').value = promptText.toUpperCase();
-        const factory = document.getElementById('factory');
-        factory.innerHTML = 'Загрузка ИИ вопросов...';
-
-        setTimeout(() => {
-            factory.innerHTML = '';
-            
-            const generatedQs = [
-                {
-                    q: `Найди правильный факт или ассоциацию по теме: "${promptText}"`,
-                    a: [`Главное понятие темы ${promptText}`, `Связано с ${promptText}`, `Точный ответ`]
-                },
-                {
-                    q: `Какое утверждение или слово ОШИБОЧНО для темы: "${promptText}"?`,
-                    a: [`Случайное чужое слово`, `Лишний элемент`, `Не относится сюда`]
-                },
-                {
-                    q: `Продолжи логический ряд, связанный с запросом "${promptText}":`,
-                    a: [`Правильное суждение`, `Очевидный факт`, `Верно`]
-                }
-            ];
-
-            generatedQs.forEach(tpl => {
-                const d = document.createElement('div'); d.className = 'card'; d.style='margin-bottom:12px; text-align:left; border-left:8px solid var(--ai)';
-                const rid = Math.random().toString(36).substr(2,5);
-                
-                const isCorrectFirst = Math.random() > 0.5;
-                const finalA = isCorrectFirst ? [tpl.a[0], tpl.a[1], tpl.a[2]] : [tpl.a[1], tpl.a[0], tpl.a[2]];
-
-                d.innerHTML = `<input type="text" value="${tpl.q}" class="qi">
-                    ${finalA.map((ans, i) => `
-                        <div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
-                            <input type="radio" name="${rid}" ${(isCorrectFirst && i===0) || (!isCorrectFirst && i===1) ? 'checked' : ''} class="ok-check">
-                            <input type="text" value="${ans}" class="ai" style="width:90%; padding:6px; border-radius:8px; border:1px solid #eee;">
-                        </div>
-                    `).join('')}`;
-                factory.appendChild(d);
-            });
-        }, 800);
+    function addOptionField(text, isCorrect) {
+        const container = document.getElementById('build-options-container');
+        const row = document.createElement('div');
+        row.className = 'opt-build-row';
+        row.innerHTML = `
+            <input type="checkbox" class="check-correct" ${isCorrect ? 'checked' : ''} onclick="onlyOneCheck(this)">
+            <input type="text" class="opt-text" placeholder="Вариант ответа" value="${text}">
+        `;
+        container.appendChild(row);
     }
 
-    function updateFeed() {
-        const box = document.getElementById('feed-box'); box.innerHTML = '';
-        if(gamesDatabase.length === 0) {
-            box.innerHTML = '<div style="text-align:center;color:gray;padding:20px;">Лента пуста. Создай первую игру при помощи ИИ!</div>';
-            return;
+    function onlyOneCheck(chk) {
+        if(chk.checked) {
+            document.querySelectorAll('.check-correct').forEach(c => { if(c !== chk) c.checked = false; });
         }
-        gamesDatabase.forEach(g => {
-            const initials = g.author.split(' ').map(n => n[0]).join('').toUpperCase();
-            const card = document.createElement('div'); card.className = 'feed-card';
-            card.innerHTML = `
-                <div class="feed-tag">Грамматика</div>
-                <div class="feed-score">${g.score}</div>
-                <div class="feed-title">${g.title}</div>
-                <div class="author-info">
-                    <div class="avatar">${initials}</div>
-                    <div class="author-text">
-                        <span class="author-name">${g.author}</span>
-                        <span class="author-meta">${g.class} • только что</span>
-                    </div>
-                </div>`;
-            card.onclick = () => loadAndPlay(g); box.appendChild(card);
-        });
     }
 
-    function buildModesMenu() {
-        const box = document.getElementById('menu-box');
-        box.innerHTML = '';
-        modes.forEach(m => {
-            const d = document.createElement('div'); d.className = 'card';
-            d.innerHTML = `<span style="font-size:35px">${m.e}</span><br><b>${m.n}</b>`;
-            d.onclick = () => { currentMode = m.id; showScreen('sc-edit'); initEdit(); };
-            box.appendChild(d);
+    function saveBuiltQuestion() {
+        const qText = document.getElementById('build-q-text').value.trim();
+        if(!qText) return alert("Введите вопрос!");
+        
+        const opts = [];
+        let hasCorrect = false;
+        document.querySelectorAll('.opt-build-row').forEach(row => {
+            const t = row.querySelector('.opt-text').value.trim();
+            const ok = row.querySelector('.check-correct').checked;
+            if(t) {
+                opts.push({ text: t, isCorrect: ok });
+                if(ok) hasCorrect = true;
+            }
         });
+
+        if(opts.length < 2) return alert("Добавьте минимум 2 ответа!");
+        if(!hasCorrect) return alert("Выберите правильный ответ (поставьте галочку)!");
+
+        buildQuestions.push({ q: qText, opts: opts.sort(() => Math.random() - 0.5) });
+        document.getElementById('ready-q-count').innerText = `Добавлено вопросов: ${buildQuestions.length}`;
+        document.getElementById('btn-publish-game').style.display = 'block';
+        setupQuestionBuilderField();
     }
 
-    function goToModes() { showScreen('sc-menu'); }
-    function initEdit() { document.getElementById('factory').innerHTML = ''; document.getElementById('game-title').value = ''; addQ(); }
-
-    function addQ(q='', a=['','',''], c=0) {
-        const d = document.createElement('div'); d.className = 'card'; d.style='margin-bottom:12px; text-align:left; border-left:8px solid var(--ai)';
-        const rid = Math.random().toString(36).substr(2,5);
-        d.innerHTML = `<input type="text" placeholder="Вопрос..." value="${q}" class="qi">
-            ${[0,1,2].map(i => `<div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
-                <input type="radio" name="${rid}" ${i===c?'checked':''} class="ok-check">
-                <input type="text" placeholder="Вариант ${i+1}" value="${a[i]||''}" class="ai" style="width:90%; padding:6px; border-radius:8px; border:1px solid #eee;">
-            </div>`).join('')}`;
-        document.getElementById('factory').appendChild(d);
+    // --- БЕСКОНЕЧНЫЙ ИИ-ГЕНЕРАТОР ---
+    function generateAIQuestions() {
+        document.getElementById('builder-zone').style.display = 'none';
+        const aiBank = [
+            { q: "Какого рода слово 'Тюль'?", a: "Мужской", n: "Женский" },
+            { q: "Какого рода слово 'Мозоль'?", a: "Женский", n: "Мужской" },
+            { q: "Слово только во множественном числе:", a: "Заморозки", n: "Снег" },
+            { q: "Какое из слов относится к 3-му склонению?", a: "Мышь", n: "Огонь" },
+            { q: "Как пишется НЕ с глаголами?", a: "Раздельно", n: "Слитно" },
+            { q: "Знак перед однородными членами после обобщающего слова:", a: "Двоеточие", n: "Тире" },
+            { q: "Что выражает подлежащее?", a: "Предмет речи", n: "Действие предмета" }
+        ];
+        
+        buildQuestions = aiBank.sort(() => Math.random() - 0.5).map(item => ({
+            q: item.q,
+            opts: [{ text: item.a, isCorrect: true }, { text: item.n, isCorrect: false }].sort(() => Math.random() - 0.5)
+        }));
+        
+        document.getElementById('ready-q-count').innerText = `ИИ сгенерировал вопросов: ${buildQuestions.length}`;
+        document.getElementById('btn-publish-game').style.display = 'block';
     }
 
     function publishGame() {
-        const title = document.getElementById('game-title').value.trim();
-        if(!title) return alert("Укажи тему задания!");
-        const builtQs = [];
-        document.querySelectorAll('#factory > .card').forEach(c => {
-            const opts = [];
-            c.querySelectorAll('div[style*="flex"]').forEach(d => {
-                const t = d.querySelector('.ai').value.trim();
-                if(t) opts.push({t, ok: d.querySelector('.ok-check').checked});
-            });
-            const qText = c.querySelector('.qi').value.trim();
-            if(qText && opts.length) builtQs.push({q: qText, opts});
+        const title = document.getElementById('setup-title').value.trim() || "Задание по языку";
+        const mode = document.getElementById('setup-mode').value;
+        
+        const newGame = {
+            id: Date.now().toString(),
+            title: title,
+            mode: mode,
+            creator: `${currentUser.name} ${currentUser.surname}`,
+            class: currentUser.class,
+            questions: buildQuestions,
+            likes: 0, dislikes: 0, likedBy: [], dislikedBy: [], comments: []
+        };
+        
+        games.push(newGame);
+        localStorage.setItem('gq_games', JSON.stringify(games));
+        
+        buildQuestions = [];
+        document.getElementById('setup-title').value = '';
+        document.getElementById('ready-q-count').innerText = "Добавлено вопросов: 0";
+        document.getElementById('btn-publish-game').style.display = 'none';
+        
+        alert("Задание опубликовано!");
+        switchTab('feed');
+        renderFeed();
+    }
+
+    // --- ЛЕНТА И РЕАКЦИИ ---
+    function renderFeed() {
+        const list = document.getElementById('feed-list');
+        const query = document.getElementById('search-task').value.toLowerCase();
+        list.innerHTML = '';
+        
+        if(games.length === 0) {
+            list.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted)">Лента пуста. Станьте первыми!</div>`;
+            return;
+        }
+
+        games.forEach(g => {
+            if(g.title.toLowerCase().includes(query) || g.creator.toLowerCase().includes(query)) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="game-item-header">
+                        <div>
+                            <span class="badge-tag">${MODES_NAMES[g.mode]}</span>
+                            <h3 style="margin: 8px 0 4px 0;">${g.title}</h3>
+                            <div style="font-size:12px; color:var(--text-muted)">От: <b>${g.creator}</b> (${g.class})</div>
+                        </div>
+                        <span class="badge-count">${g.questions.length} вопр.</span>
+                    </div>
+                    <button class="btn" style="margin-top:15px;" onclick="initiatePlay('${g.id}')">Играть ▶️</button>
+                    <div class="reactions">
+                        <div class="reaction-btn" onclick="handleReaction('${g.id}', 'like')">👍 <span>${g.likes}</span></div>
+                        <div class="reaction-btn" onclick="handleReaction('${g.id}', 'dislike')">👎 <span>${g.dislikes}</span></div>
+                        <div class="reaction-btn" onclick="openComments('${g.id}')">💬 <span>${g.comments ? g.comments.length : 0}</span></div>
+                    </div>
+                `;
+                list.appendChild(card);
+            }
         });
-        if(!builtQs.length) return alert("Добавь хотя бы один вопрос!");
-
-        const newGame = { id: Date.now(), author: user.name, class: user.class, title: title, mode: currentMode, score: `${builtQs.length * 5} б.`, qs: builtQs };
-        gamesDatabase.unshift(newGame);
-        localStorage.setItem('gl_games', JSON.stringify(gamesDatabase));
-        updateFeed(); showScreen('sc-feed');
     }
 
-    function loadAndPlay(gameData) {
-        currentMode = gameData.mode; currentQs = gameData.qs; currentStep = 0; currentScore = 0;
-        showScreen('sc-game'); renderGame();
+    function renderMyGames() {
+        const list = document.getElementById('my-games-list');
+        list.innerHTML = '';
+        const my = games.filter(g => g.creator === `${currentUser.name} ${currentUser.surname}`);
+        
+        if(my.length === 0) {
+            list.innerHTML = `<div style="font-size:13px; color:var(--text-muted)">Вы еще не создавали квестов.</div>`;
+            return;
+        }
+        my.forEach(g => {
+            const d = document.createElement('div');
+            d.className = 'card';
+            d.style.background = 'rgba(0,0,0,0.1)';
+            d.innerHTML = `<strong>${g.title}</strong> (${MODES_NAMES[g.mode]}) <button class="btn btn-danger" style="padding:4px 10px; font-size:11px; width:auto; float:right; margin:0;" onclick="deleteGame('${g.id}')">Удалить</button>`;
+            list.appendChild(d);
+        });
     }
 
-    function renderGame() {
-        lock = false; const it = currentQs[currentStep]; const st = document.getElementById('stage'); const op = document.getElementById('options');
-        st.innerHTML = ""; op.innerHTML = ""; document.getElementById('q-text').innerText = it.q;
-        document.getElementById('score-val').innerText = `Счет: ${currentScore} ⭐`;
+    function deleteGame(id) {
+        games = games.filter(g => g.id !== id);
+        localStorage.setItem('gq_games', JSON.stringify(games));
+        renderMyGames(); renderFeed();
+    }
 
-        const shuffledOpts = [...it.opts].sort(() => Math.random() - 0.5);
+    function handleReaction(id, type) {
+        const game = games.find(g => g.id === id);
+        if(!game) return;
+        if(!game.likedBy) game.likedBy = [];
+        if(!game.dislikedBy) game.dislikedBy = [];
 
-        if(currentMode === 'sort') {
-            st.innerHTML = `<div class="sort-card">${shuffledOpts[0].t}</div>`;
-            const b1 = document.createElement('button'); b1.className='btn btn-p'; b1.innerText = "ГРУППА 1"; b1.onclick = () => check(shuffledOpts[0].ok, b1);
-            const b2 = document.createElement('button'); b2.className='btn btn-ai'; b2.innerText = "ГРУППА 2"; b2.onclick = () => check(!shuffledOpts[0].ok, b2);
-            op.appendChild(b1); op.appendChild(b2);
-        } else if(currentMode === 'tf') {
-            st.innerHTML = `<div style="font-size:24px; font-weight:900; color:var(--ai);">"${shuffledOpts[0].t}"</div>`;
-            const b1 = document.createElement('button'); b1.className='btn btn-s'; b1.innerText="ПРАВДА"; b1.onclick=()=>check(shuffledOpts[0].ok, b1);
-            const b2 = document.createElement('button'); b2.className='btn btn-red'; b2.innerText="ЛОЖЬ"; b2.onclick=()=>check(!shuffledOpts[0].ok, b2);
-            op.appendChild(b1); op.appendChild(b2);
-        } else if(currentMode === 'mole') {
-            shuffledOpts.forEach((o, i) => {
-                const m = document.createElement('div'); m.className = 'mole'; m.innerText = o.t;
-                m.style.left = (15 + i*110) + 'px'; m.onclick = () => check(o.ok, m);
-                st.appendChild(m); setTimeout(() => m.classList.add('up'), 100 + i*400);
-            });
-        } else if(currentMode === 'plane') {
-            shuffledOpts.forEach((o, i) => {
-                const p = document.createElement('div'); p.className = 'plane-item';
-                p.style.top = (40 + i*80) + 'px'; p.style.animationDuration = (6 + i*2) + 's';
-                p.innerText = o.t; p.onclick = () => check(o.ok, p); st.appendChild(p);
-            });
+        if(type === 'like') {
+            if(game.likedBy.includes(currentUser.name)) return;
+            game.likes++; game.likedBy.push(currentUser.name);
+            game.dislikedBy = game.dislikedBy.filter(u => u !== currentUser.name);
         } else {
-            // Режимы 'words' (Слова) и 'quiz' (Тест) используют стандартные кнопки вариантов ответов
-            shuffledOpts.forEach(o => {
-                const b = document.createElement('button'); b.className = 'btn btn-p'; b.innerText = o.t;
-                b.onclick = () => check(o.ok, b); op.appendChild(b);
+            if(game.dislikedBy.includes(currentUser.name)) return;
+            game.dislikes++; game.dislikedBy.push(currentUser.name);
+            game.likedBy = game.likedBy.filter(u => u !== currentUser.name);
+        }
+        game.likes = game.likedBy.length;
+        game.dislikes = game.dislikedBy.length;
+        localStorage.setItem('gq_games', JSON.stringify(games));
+        renderFeed();
+    }
+
+    // --- ДВИЖОК ДЛЯ ВСЕХ 6 ИГР ---
+    function initiatePlay(id) {
+        activeGame = games.find(g => g.id === id);
+        if(!activeGame || !activeGame.questions.length) return alert("В игре нет вопросов!");
+        activeGameIndex = 0;
+        activeScore = 0;
+        switchTab('game');
+        playNextQuestion();
+    }
+
+    function playNextQuestion() {
+        activeIsLocked = false;
+        document.getElementById('game-hud').innerText = `${activeScore} б.`;
+        const qData = activeGame.questions[activeGameIndex];
+        document.getElementById('game-q-text').innerText = qData.q;
+        
+        const stage = document.getElementById('stage');
+        const ansBox = document.getElementById('game-answers');
+        stage.innerHTML = ''; ansBox.innerHTML = '';
+
+        if(activeGame.mode === 'mole') {
+            stage.style.background = "#5d4037";
+            qData.opts.forEach((opt, i) => {
+                const m = document.createElement('div'); m.className = 'mole'; m.innerText = opt.text;
+                m.style.left = (15 + i * 170) + 'px';
+                m.onclick = () => checkEngine(opt.isCorrect, m);
+                stage.appendChild(m);
+                setTimeout(() => m.classList.add('up'), 100 + i * 200);
+            });
+        } 
+        else if(activeGame.mode === 'plane') {
+            stage.style.background = "#0ea5e9";
+            qData.opts.forEach((opt, i) => {
+                const p = document.createElement('div'); p.className = 'plane'; p.innerText = opt.text;
+                p.style.top = (30 + i * 80) + 'px';
+                p.onclick = () => checkEngine(opt.isCorrect, p);
+                stage.appendChild(p);
+            });
+        }
+        else if(activeGame.mode === 'words') {
+            stage.style.background = "#fff";
+            stage.innerHTML = `<input type="text" id="mode-word-in" placeholder="Введите точный ответ..." style="width:85%; padding:12px; border:2px solid var(--primary); color:#000;">`;
+            const b = document.createElement('button'); b.className = 'btn'; b.innerText = "Проверить";
+            b.onclick = () => {
+                const text = document.getElementById('mode-word-in').value.trim().toLowerCase();
+                const correct = qData.opts.find(o => o.isCorrect).text.toLowerCase();
+                checkEngine(text === correct);
+            };
+            ansBox.appendChild(b);
+        }
+        else if(activeGame.mode === 'sort') {
+            stage.style.background = "#e2e8f0";
+            stage.innerHTML = `<div style="padding:15px; background:var(--secondary); border-radius:12px; font-weight:bold; color:white;">Группа: ПРАВИЛЬНО</div>`;
+            qData.opts.forEach(opt => {
+                const b = document.createElement('button'); b.className = 'btn btn-sec'; b.innerText = opt.text;
+                b.onclick = () => checkEngine(opt.isCorrect, b);
+                ansBox.appendChild(b);
+            });
+        }
+        else { // tf или quiz
+            stage.style.background = "#f1f5f9";
+            stage.innerHTML = `<div style="font-size:60px; color: #1c2541">${activeGame.mode === 'tf' ? '⚖️' : '📝'}</div>`;
+            qData.opts.forEach(opt => {
+                const b = document.createElement('button'); b.className = 'btn btn-sec'; b.innerText = opt.text;
+                b.onclick = () => checkEngine(opt.isCorrect, b);
+                ansBox.appendChild(b);
             });
         }
     }
 
-    function check(ok, el) {
-        if(lock) return; lock = true;
-        if(ok) { currentScore += 10; confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } }); }
-        else if(el) { el.style.background = 'var(--red)'; el.style.animation = 'shake 0.3s ease'; }
-        currentStep++; setTimeout(() => { if(currentStep < currentQs.length) renderGame(); else finish(); }, 700);
+    function checkEngine(correct, element) {
+        if(activeIsLocked) return;
+        activeIsLocked = true;
+        
+        if(correct) {
+            activeScore += 10;
+            if(element) element.style.background = "var(--success)";
+        } else {
+            if(element) element.style.background = "var(--danger)";
+        }
+
+        activeGameIndex++;
+        setTimeout(() => {
+            if(activeGameIndex < activeGame.questions.length) {
+                playNextQuestion();
+            } else {
+                showFinalResults();
+            }
+        }, 800);
     }
 
-    function finish() {
-        document.getElementById('score-val').innerText = `${user.name} (${user.class})`;
-        document.getElementById('stage').innerHTML = `<div style="text-align:center"><h1>ФИНИШ! 🏆</h1><h2>Результат: ${currentScore} ⭐</h2><button class="btn btn-s" onclick="showScreen('sc-feed')">В ЛЕНТУ</button></div>`;
-        document.getElementById('options').innerHTML = '';
+    // --- ЭКРАН ФИНАЛЬНЫХ БАЛЛОВ ---
+    function showFinalResults() {
+        switchTab('results');
+        document.getElementById('res-game-title').innerText = activeGame.title;
+        document.getElementById('res-user-name').innerText = `${currentUser.name} ${currentUser.surname} (${currentUser.class})`;
+        document.getElementById('res-total-score').innerText = `${activeScore} баллов`;
+        
+        const maxScore = activeGame.questions.length * 10;
+        let feedback = "";
+        if(activeScore === maxScore) feedback = "Великолепно! Ты ответил правильно на все вопросы! 🔥";
+        else if (activeScore >= maxScore * 0.7) feedback = "Отличный результат! Почти без ошибок. 👍";
+        else feedback = "Хорошая попытка! Стоит повторить правила и попробовать еще раз. 📖";
+        
+        document.getElementById('res-feedback-text').innerText = feedback;
+    }
+
+    // --- КОММЕНТАРИИ ---
+    function openComments(id) {
+        activeCommentGameId = id;
+        const game = games.find(g => g.id === id);
+        switchTab('comments');
+        document.getElementById('comment-game-info').innerHTML = `<h3>Задание: ${game.title}</h3><p style="color:var(--text-muted); margin:0;">Создатель: ${game.creator}</p>`;
+        renderCommentsList(game);
+    }
+
+    function renderCommentsList(game) {
+        const box = document.getElementById('comments-box');
+        box.innerHTML = '';
+        if(!game.comments || game.comments.length === 0) {
+            box.innerHTML = `<p style="color:var(--text-muted); font-size:13px;">Комментариев пока нет.</p>`;
+            return;
+        }
+        game.comments.forEach(c => {
+            const div = document.createElement('div');
+            div.style.cssText = "background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; margin-bottom:8px; border-left:3px solid var(--primary);";
+            div.innerHTML = `<div style="font-size:12px; font-weight:bold; color:var(--primary);">${c.user} (${c.class})</div><div style="font-size:14px; margin-top:4px;">${c.text}</div>`;
+            box.appendChild(div);
+        });
+    }
+
+    function submitComment() {
+        const text = document.getElementById('new-comment-text').value.trim();
+        if(!text) return alert("Напишите текст!");
+        const game = games.find(g => g.id === activeCommentGameId);
+        if(!game.comments) game.comments = [];
+        
+        game.comments.push({ user: `${currentUser.name} ${currentUser.surname}`, class: currentUser.class, text: text });
+        localStorage.setItem('gq_games', JSON.stringify(games));
+        document.getElementById('new-comment-text').value = '';
+        renderCommentsList(game); renderFeed();
     }
 </script>
 </body>
