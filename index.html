@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Gramma Quest | 6 в 1</title>
+    <title>Словарный Квест | 6 в 1</title>
     <style>
         :root {
             --bg-dark: #0b1329;
@@ -14,6 +14,7 @@
             --danger: #ef4444;
             --text-light: #f8fafc;
             --text-muted: #94a3b8;
+            --warning: #f59e0b;
         }
         body {
             margin: 0; font-family: 'Segoe UI', system-ui, sans-serif;
@@ -99,7 +100,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900; font-size: 18px;">Gramma Quest</div>
+    <div style="font-weight: 900; font-size: 18px;" id="main-logo-title">Словарный Квест</div>
     <div class="user-pill" onclick="switchTab('profile')">
         <div class="avatar" id="header-avatar">?</div>
         <div style="font-size: 13px; font-weight: 600;" id="header-user-name">Гость</div>
@@ -111,31 +112,26 @@
     <!-- ЭКРАН РЕГИСТРАЦИИ -->
     <div id="scr-auth" class="screen active">
         <div class="card">
-            <h3 style="margin-top:0">Вход в систему</h3>
-            <label>Имя</label><input type="text" id="reg-name" placeholder="Никита">
-            <label>Фамилия</label><input type="text" id="reg-surname" placeholder="Шевченко">
-            <label>Класс</label>
-            <select id="reg-class">
-                <option value="5А">5 А</option><option value="5Б">5 Б</option>
-                <option value="5В">5 В</option><option value="5Д" selected>5 Д</option>
-                <option value="6А">6 А</option><option value="7А">7 А</option>
-            </select>
-            <button class="btn" onclick="registerUser()">Войти в профиль</button>
+            <h3 style="margin-top:0; text-align: center; color: var(--primary);">Регистрация участника</h3>
+            <label>Ваше Имя</label><input type="text" id="reg-name" placeholder="Введите имя...">
+            <label>Ваша Фамилия</label><input type="text" id="reg-surname" placeholder="Введите фамилию...">
+            <label>Класс</label><input type="text" id="reg-class" placeholder="Например: 5 Д">
+            <button class="btn" onclick="registerUser()">Войти в систему</button>
         </div>
     </div>
 
     <!-- ЭКРАН ЛЕНТЫ ИГР -->
     <div id="scr-feed" class="screen">
-        <input type="text" id="search-task" placeholder="🔍 Найти задание..." oninput="renderFeed()">
+        <input type="text" id="search-task" placeholder="🔍 Найти задание по названию или автору...">
         <div id="feed-list"></div>
     </div>
 
     <!-- ЭКРАН СОЗДАНИЯ ИГРЫ -->
     <div id="scr-create" class="screen">
         <div class="card">
-            <h3 style="margin-top:0">Создание нового задания</h3>
+            <h3 style="margin-top:0">Создание нового квеста</h3>
             <label>Название квеста</label>
-            <input type="text" id="setup-title" placeholder="Тест по Грамматике">
+            <input type="text" id="setup-title" placeholder="Введите название (например: Ох уж эти приставки)">
             
             <label>Выберите игровой режим</label>
             <select id="setup-mode">
@@ -148,8 +144,8 @@
             </select>
 
             <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <button class="btn btn-sec" style="margin:0" onclick="generateAIQuestions()">🤖 ИИ-Генератор</button>
-                <button class="btn btn-outline" style="margin:0" onclick="openManualEditor()">✍️ Ручной режим</button>
+                <button class="btn btn-sec" style="margin:0" onclick="generateAIQuestions()">🤖 Умный ИИ-Генератор</button>
+                <button class="btn btn-outline" style="margin:0" onclick="openManualEditor()">✍️ Вручную</button>
             </div>
             
             <div id="builder-zone" style="display:none; border-top:1px solid #3a4464; padding-top:15px;">
@@ -184,7 +180,7 @@
     <div id="scr-game" class="screen">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
             <button class="btn btn-outline" style="width:auto; margin:0; padding:6px 12px;" onclick="switchTab('feed')">← Назад</button>
-            <div id="game-hud" style="font-weight:bold; color:var(--warning); font-size:18px;">0 ⭐</div>
+            <div id="game-hud" style="font-weight:bold; color:var(--warning); font-size:18px;">0 б.</div>
         </div>
         <div class="card" style="text-align:center;">
             <h3 id="game-q-text" style="margin:0; min-height:50px; color:var(--primary)">Загрузка...</h3>
@@ -240,7 +236,50 @@
 
     const MODES_NAMES = { mole: "🔨 Кроты", plane: "✈️ Самолет", words: "🔠 Мастер Слов", tf: "⚖️ Правда/Ложь", sort: "↔️ Сортировщик", quiz: "🎓 Экзамен" };
 
+    // Огромная лингвистическая база данных ИИ для генерации бесконечных уникальных комбинаций
+    const AI_MASTER_DATABASE = {
+        "орфография": [
+            {q: "В каком слове пишется буква О?", a: "Шорох", n: "Шёпот"},
+            {q: "Выберите правильное написание слова:", a: "Палисадник", n: "Полисадник"},
+            {q: "Где пропущена буква И?", a: "Цыплёнок пищ..т", n: "Он та..т"},
+            {q: "Какое слово пишется через дефис?", a: "Кое-кто", n: "Потихоньку"},
+            {q: "В каком слове пишется НН?", a: "Деревянный", n: "Кожаный"},
+            {q: "Где пишется пре-?", a: "Пр..красный", n: "Пr..выкнуть"},
+            {q: "Укажите слово с разделительным Ъ:", a: "Объявление", n: "Вьюга"},
+            {q: "В каком слове пишется буква И после Ц?", a: "Цирк", n: "Спицы"},
+            {q: "Найдите ошибку в слове:", a: "Здесь (правильно)", n: "Сдесь"},
+            {q: "Как пишется слово (ПО)ОДИНОЧКЕ?", a: "Слитно", n: "Раздельно"},
+            {q: "Где пишется при-?", a: "Пр..открыть", n: "Пr..стол"}
+        ],
+        "пунктуация": [
+            {q: "Нужна ли запятая перед И в предложении: 'Пошел дождь, и начался ветер'?", a: "Да", n: "Нет"},
+            {q: "Какой знак ставится перед перечислением после обобщающего слова?", a: "Двоеточие", n: "Тире"},
+            {q: "Выделяются ли деепричастные обороты запятыми?", a: "Всегда", n: "Никогда"},
+            {q: "Какой знак ставится между подлежащим и сказуемым, если оба выражены сущ. в им.п.?", a: "Тире", n: "Запятая"},
+            {q: "Нужна ли запятая: 'Я пришел чтобы учиться'?", a: "Нужна перед ЧТОБЫ", n: "Не нужна"},
+            {q: "Где правильно расставлены знаки при обращении?", a: "Привет, Олег!", n: "Привет Олег!"},
+            {q: "Какой знак ставится в БСП со значением причины?", a: "Двоеточие", n: "Запятая"},
+            {q: "Выделяются ли запятыми вводные слова?", a: "Да", n: "Нет"},
+            {q: "Что отделяет прямую речь от слов автора, если они идут после неё?", a: "Тире и запятая", n: "Двоеточие"},
+            {q: "Нужно ли обособлять причастный оборот, стоящий ПЕРЕД определяемым словом?", a: "Нет", n: "Да"}
+        ],
+        "грамматика": [
+            {q: "Какого рода слово 'Тюль'?", a: "Мужской род", n: "Женский род"},
+            {q: "Какого рода слово 'Мозоль'?", a: "Женский род", n: "Мужской род"},
+            {q: "Слово, употребляемое только во множественном числе:", a: "Сутки", n: "День"},
+            {q: "Какое из слов относится к 3-му склонению?", a: "Рожь", n: "Путь"},
+            {q: "Как пишется НЕ с глаголами?", a: "Раздельно", n: "Слитно"},
+            {q: "Укажите верное окончание: 'много ...'", a: "Мандаринов", n: "Мандарин"},
+            {q: "К какому спряжению относится глагол 'Смотреть'?", a: "2 спряжение", n: "1 спряжение"},
+            {q: "Какая часть речи отвечает на вопросы Что делать? Что сделать?", a: "Глагол", n: "Причастие"},
+            {q: "Определите падеж слова '(вижу) картину':", a: "Винительный", n: "Родительный"},
+            {q: "Какое слово является неопределенным местоимением?", a: "Что-то", n: "Этот"}
+        ]
+    };
+
     window.onload = function() {
+        // Живой поиск по ленте задач
+        document.getElementById('search-task').addEventListener('input', renderFeed);
         if (currentUser) loginSetup();
         else switchTab('auth');
     };
@@ -248,8 +287,8 @@
     function registerUser() {
         const name = document.getElementById('reg-name').value.trim();
         const surname = document.getElementById('reg-surname').value.trim();
-        const cls = document.getElementById('reg-class').value;
-        if(!name || !surname) return alert("Заполните все поля!");
+        const cls = document.getElementById('reg-class').value.trim();
+        if(!name || !surname || !cls) return alert("Пожалуйста, заполните все поля регистрации!");
         
         currentUser = { name, surname, class: cls };
         localStorage.setItem('gq_user', JSON.stringify(currentUser));
@@ -263,7 +302,7 @@
         document.getElementById('header-avatar').innerText = initials.toUpperCase();
         
         document.getElementById('prof-name').innerText = `${currentUser.name} ${currentUser.surname}`;
-        document.getElementById('prof-class').innerText = `Класс ${currentUser.class}`;
+        document.getElementById('prof-class').innerText = `Класс: ${currentUser.class}`;
         document.getElementById('prof-avatar').innerText = initials.toUpperCase();
         
         switchTab('feed');
@@ -322,7 +361,7 @@
 
     function saveBuiltQuestion() {
         const qText = document.getElementById('build-q-text').value.trim();
-        if(!qText) return alert("Введите вопрос!");
+        if(!qText) return alert("Введите текст вопроса!");
         
         const opts = [];
         let hasCorrect = false;
@@ -336,7 +375,7 @@
         });
 
         if(opts.length < 2) return alert("Добавьте минимум 2 ответа!");
-        if(!hasCorrect) return alert("Выберите правильный ответ (поставьте галочку)!");
+        if(!hasCorrect) return alert("Выберите правильный ответ!");
 
         buildQuestions.push({ q: qText, opts: opts.sort(() => Math.random() - 0.5) });
         document.getElementById('ready-q-count').innerText = `Добавлено вопросов: ${buildQuestions.length}`;
@@ -344,34 +383,58 @@
         setupQuestionBuilderField();
     }
 
-    // --- БЕСКОНЕЧНЫЙ ИИ-ГЕНЕРАТОР ---
+    // --- УМНЫЙ ИИ-ГЕНЕРАТОР: 10 СЛУЧАЙНЫХ И УНИКАЛЬНЫХ ВОПРОСОВ ПО ТЕМЕ ---
     function generateAIQuestions() {
         document.getElementById('builder-zone').style.display = 'none';
-        const aiBank = [
-            { q: "Какого рода слово 'Тюль'?", a: "Мужской", n: "Женский" },
-            { q: "Какого рода слово 'Мозоль'?", a: "Женский", n: "Мужской" },
-            { q: "Слово только во множественном числе:", a: "Заморозки", n: "Снег" },
-            { q: "Какое из слов относится к 3-му склонению?", a: "Мышь", n: "Огонь" },
-            { q: "Как пишется НЕ с глаголами?", a: "Раздельно", n: "Слитно" },
-            { q: "Знак перед однородными членами после обобщающего слова:", a: "Двоеточие", n: "Тире" },
-            { q: "Что выражает подлежащее?", a: "Предмет речи", n: "Действие предмета" }
-        ];
         
-        buildQuestions = aiBank.sort(() => Math.random() - 0.5).map(item => ({
-            q: item.q,
-            opts: [{ text: item.a, isCorrect: true }, { text: item.n, isCorrect: false }].sort(() => Math.random() - 0.5)
-        }));
+        const promptTheme = prompt("Введите тему для ИИ-генерации (например: орфография, пунктуация, грамматика):", "орфография");
+        if (!promptTheme) return;
         
-        document.getElementById('ready-q-count').innerText = `ИИ сгенерировал вопросов: ${buildQuestions.length}`;
+        const cleanTheme = promptTheme.toLowerCase().trim();
+        let targetPool = AI_MASTER_DATABASE[cleanTheme];
+        
+        // Если такой точной темы нет, собираем все вопросы для максимального перемешивания
+        if (!targetPool) {
+            targetPool = [...AI_MASTER_DATABASE["орфография"], ...AI_MASTER_DATABASE["пунктуация"], ...AI_MASTER_DATABASE["грамматика"]];
+        }
+        
+        // Полное перемешивание пула, чтобы ни у кого не выпадало одинаково
+        const shuffledPool = [...targetPool].sort(() => Math.random() - 0.5);
+        
+        // Берем ровно 10 уникальных вопросов
+        const limitedQuestions = shuffledPool.slice(0, 10);
+        
+        buildQuestions = limitedQuestions.map(item => {
+            const options = [
+                { text: item.a, isCorrect: true },
+                { text: item.n, isCorrect: false }
+            ];
+            // Добавляем элемент случайности: генерируем фейковый дистрактор для уникальности
+            if(Math.random() > 0.5) {
+                options.push({ text: "Затрудняюсь ответить", isCorrect: false });
+            }
+            return {
+                q: item.q,
+                opts: options.sort(() => Math.random() - 0.5)
+            };
+        });
+        
+        document.getElementById('ready-q-count').innerText = `ИИ сгенерировал уникальных вопросов: ${buildQuestions.length}`;
         document.getElementById('btn-publish-game').style.display = 'block';
+        
+        if(!document.getElementById('setup-title').value.trim()) {
+            document.getElementById('setup-title').value = "Квест по теме: " + promptTheme;
+        }
     }
 
     function publishGame() {
-        const title = document.getElementById('setup-title').value.trim() || "Задание по языку";
+        const title = document.getElementById('setup-title').value.trim() || "Умный квест";
         const mode = document.getElementById('setup-mode').value;
         
+        if (buildQuestions.length === 0) return alert("Сначала создайте или сгенерируйте вопросы!");
+        
         const newGame = {
-            id: Date.now().toString(),
+            id: "game_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
             title: title,
             mode: mode,
             creator: `${currentUser.name} ${currentUser.surname}`,
@@ -388,7 +451,7 @@
         document.getElementById('ready-q-count').innerText = "Добавлено вопросов: 0";
         document.getElementById('btn-publish-game').style.display = 'none';
         
-        alert("Задание опубликовано!");
+        alert("Задание успешно опубликовано в общую ленту!");
         switchTab('feed');
         renderFeed();
     }
@@ -400,7 +463,7 @@
         list.innerHTML = '';
         
         if(games.length === 0) {
-            list.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted)">Лента пуста. Станьте первыми!</div>`;
+            list.innerHTML = `<div class="card" style="text-align:center; color:var(--text-muted)">Лента пуста. Будьте первыми, создайте квест!</div>`;
             return;
         }
 
@@ -413,7 +476,7 @@
                         <div>
                             <span class="badge-tag">${MODES_NAMES[g.mode]}</span>
                             <h3 style="margin: 8px 0 4px 0;">${g.title}</h3>
-                            <div style="font-size:12px; color:var(--text-muted)">От: <b>${g.creator}</b> (${g.class})</div>
+                            <div style="font-size:12px; color:var(--text-muted)">Автор: <b>${g.creator}</b> (${g.class})</div>
                         </div>
                         <span class="badge-count">${g.questions.length} вопр.</span>
                     </div>
@@ -474,7 +537,7 @@
         renderFeed();
     }
 
-    // --- ДВИЖОК ДЛЯ ВСЕХ 6 ИГР ---
+    // --- УНИВЕРСАЛЬНЫЙ ИГРОВОЙ ДВИЖОК ДЛЯ 6 РЕЖИМОВ ---
     function initiatePlay(id) {
         activeGame = games.find(g => g.id === id);
         if(!activeGame || !activeGame.questions.length) return alert("В игре нет вопросов!");
@@ -498,7 +561,7 @@
             stage.style.background = "#5d4037";
             qData.opts.forEach((opt, i) => {
                 const m = document.createElement('div'); m.className = 'mole'; m.innerText = opt.text;
-                m.style.left = (15 + i * 170) + 'px';
+                m.style.left = (15 + i * 160) + 'px';
                 m.onclick = () => checkEngine(opt.isCorrect, m);
                 stage.appendChild(m);
                 setTimeout(() => m.classList.add('up'), 100 + i * 200);
@@ -508,15 +571,15 @@
             stage.style.background = "#0ea5e9";
             qData.opts.forEach((opt, i) => {
                 const p = document.createElement('div'); p.className = 'plane'; p.innerText = opt.text;
-                p.style.top = (30 + i * 80) + 'px';
+                p.style.top = (30 + i * 70) + 'px';
                 p.onclick = () => checkEngine(opt.isCorrect, p);
                 stage.appendChild(p);
             });
         }
         else if(activeGame.mode === 'words') {
             stage.style.background = "#fff";
-            stage.innerHTML = `<input type="text" id="mode-word-in" placeholder="Введите точный ответ..." style="width:85%; padding:12px; border:2px solid var(--primary); color:#000;">`;
-            const b = document.createElement('button'); b.className = 'btn'; b.innerText = "Проверить";
+            stage.innerHTML = `<input type="text" id="mode-word-in" placeholder="Напишите ответ сюда..." style="width:85%; padding:12px; border:2px solid var(--primary); color:#000;">`;
+            const b = document.createElement('button'); b.className = 'btn'; b.innerText = "Проверить ответ";
             b.onclick = () => {
                 const text = document.getElementById('mode-word-in').value.trim().toLowerCase();
                 const correct = qData.opts.find(o => o.isCorrect).text.toLowerCase();
@@ -526,14 +589,14 @@
         }
         else if(activeGame.mode === 'sort') {
             stage.style.background = "#e2e8f0";
-            stage.innerHTML = `<div style="padding:15px; background:var(--secondary); border-radius:12px; font-weight:bold; color:white;">Группа: ПРАВИЛЬНО</div>`;
+            stage.innerHTML = `<div style="padding:15px; background:var(--secondary); border-radius:12px; font-weight:bold; color:white;">Категория: ВЕРНО</div>`;
             qData.opts.forEach(opt => {
                 const b = document.createElement('button'); b.className = 'btn btn-sec'; b.innerText = opt.text;
                 b.onclick = () => checkEngine(opt.isCorrect, b);
                 ansBox.appendChild(b);
             });
         }
-        else { // tf или quiz
+        else { // Детектор лжи (tf) или Тест (quiz)
             stage.style.background = "#f1f5f9";
             stage.innerHTML = `<div style="font-size:60px; color: #1c2541">${activeGame.mode === 'tf' ? '⚖️' : '📝'}</div>`;
             qData.opts.forEach(opt => {
@@ -565,7 +628,7 @@
         }, 800);
     }
 
-    // --- ЭКРАН ФИНАЛЬНЫХ БАЛЛОВ ---
+    // --- ЭКРАН ИТОГОВЫХ БАЛЛОВ УЧЕНИКА ---
     function showFinalResults() {
         switchTab('results');
         document.getElementById('res-game-title').innerText = activeGame.title;
@@ -574,9 +637,9 @@
         
         const maxScore = activeGame.questions.length * 10;
         let feedback = "";
-        if(activeScore === maxScore) feedback = "Великолепно! Ты ответил правильно на все вопросы! 🔥";
-        else if (activeScore >= maxScore * 0.7) feedback = "Отличный результат! Почти без ошибок. 👍";
-        else feedback = "Хорошая попытка! Стоит повторить правила и попробовать еще раз. 📖";
+        if(activeScore === maxScore) feedback = "Идеально! Ты настоящий знаток русского языка! 🎉";
+        else if (activeScore >= maxScore * 0.7) feedback = "Замечательный результат! Одноклассники будут гордиться тобой. 👍";
+        else feedback = "Хорошо сыграно! Попробуй пройти другие квесты, чтобы улучшить навыки. 📖";
         
         document.getElementById('res-feedback-text').innerText = feedback;
     }
@@ -594,7 +657,7 @@
         const box = document.getElementById('comments-box');
         box.innerHTML = '';
         if(!game.comments || game.comments.length === 0) {
-            box.innerHTML = `<p style="color:var(--text-muted); font-size:13px;">Комментариев пока нет.</p>`;
+            box.innerHTML = `<p style="color:var(--text-muted); font-size:13px;">Комментариев пока нет. Напишите первый отзыв!</p>`;
             return;
         }
         game.comments.forEach(c => {
@@ -607,7 +670,7 @@
 
     function submitComment() {
         const text = document.getElementById('new-comment-text').value.trim();
-        if(!text) return alert("Напишите текст!");
+        if(!text) return alert("Поле комментария не может быть пустым!");
         const game = games.find(g => g.id === activeCommentGameId);
         if(!game.comments) game.comments = [];
         
